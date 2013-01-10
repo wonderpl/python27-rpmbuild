@@ -1,0 +1,20 @@
+--- s3cmd	2011-02-17 22:43:24.262086984 +0900
++++ s3cmd	2011-02-17 22:38:37.990078966 +0900
+@@ -1566,6 +1566,17 @@
+ 	except IOError, e:
+ 		if options.run_configure:
+ 			cfg = Config()
++		elif 'AWS_ACCESS_KEY_ID' in os.environ and \
++				'AWS_SECRET_ACCESS_KEY' in os.environ:
++			cfg = Config()
++			cfg.access_key = os.environ['AWS_ACCESS_KEY_ID']
++			cfg.secret_key = os.environ['AWS_SECRET_ACCESS_KEY']
++		elif 'AWS_CREDENTIAL_FILE' in os.environ:
++			from S3.Config import ConfigParser
++			credentials = ConfigParser(os.environ['AWS_CREDENTIAL_FILE'])
++			cfg = Config()
++			cfg.access_key = credentials.get('AWSAccessKeyId')
++			cfg.secret_key = credentials.get('AWSSecretKey')
+ 		else:
+ 			error(u"%s: %s"  % (options.config, e.strerror))
+ 			error(u"Configuration file not available.")

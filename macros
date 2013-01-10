@@ -1,0 +1,19 @@
+%_topdir      %(echo $HOME)/rpmbuild
+%_builddir    %{_topdir}/BUILD
+%_tmppath     %{_topdir}/TEMP
+%_rpmtopdir   %{_topdir}/%{?name}
+%_rpmdir      %{_rpmtopdir}
+%_sourcedir   %{_rpmtopdir}
+%_specdir     %{_rpmtopdir}
+%_srcrpmdir   %{_rpmtopdir}
+
+%__python /usr/bin/python2.7
+
+%_smp_mflags  -j3
+
+%__arch_install_post \
+	/usr/lib/rpm/check-rpaths \
+	/usr/lib/rpm/check-buildroot \
+	/usr/lib/rpm/brp-python-bytecompile %{__python}
+
+%_default_patch_fuzz -1

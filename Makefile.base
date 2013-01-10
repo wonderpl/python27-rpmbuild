@@ -1,0 +1,69 @@
+
+PACKAGE ?= $(shell basename $$(pwd))
+SPEC ?= $(PACKAGE).spec
+REVISION ?= HEAD
+HGREVISION ?= tip
+
+DEFINES += $(if $(VERSION),--define 'basever $(VERSION)')
+DEFINES += $(if $(REVISION),--define 'revision $(REVISION)')
+DEFINES += $(if $(SRC),--define 'source $(SRC)')
+DEFINES += $(if $(findstring python27,$(PACKAGE)),--define '__python /usr/bin/python2.7')
+
+RPM_BUILDNAME := $(shell rpm --eval '%{_build_name_fmt}')
+RPM ?= $(shell rpm --specfile $(SPEC) -q --qf '$(RPM_BUILDNAME)\n' $(DEFINES) $(BUILDFLAGS))
+SOURCE0_URL ?= $(word 2, $(shell spectool -l -s 0 $(DEFINES) $(SPEC)))
+
+SOURCE0 ?= $(shell basename $(SOURCE0_URL))
+
+ARCH := noarch i386 x86_64
+
+
+.PHONY: all clean rpm publish
+
+all: rpm
+
+ifdef SVN_SOURCE
+
+$(SOURCE0): FORCE
+	@echo "Downloading source from SVN $(SOURCE0_URL)@$(REVISION)"
+	@if [ -d $@/.svn ]; then \
+		svn update -r $(REVISION) --ignore-externals $@; \
+	else \
+		svn checkout -r $(REVISION) $(SOURCE0_URL) $@; \
+	fi; \
+
+endif
+
+ifdef HG_SOURCE
+
+$(SOURCE0): FORCE
+	@echo "Downloading source from HG $(SOURCE0_URL) (rev $(HGREVISION))"
+	@if [ -d $@/.hg ]; then \
+		hg pull -u -r $(HGREVISION) -R $@; \
+	else \
+		hg clone -r $(HGREVISION) $(SOURCE0_URL) $@; \
+	fi; \
+
+endif
+
+ifeq "$(SVN_SOURCE)$(HG_SOURCE)" ""
+
+$(SOURCE0): $(SPEC)
+	spectool -g $(DEFINES) $<
+	touch -c $@
+
+endif
+
+
+$(RPM): $(SPEC) $(SOURCE0)
+	@echo "-- $@"
+	rpmbuild -bb $(DEFINES) $(BUILDFLAGS) $<
+
+source: $(SOURCE0)
+
+rpm: $(RPM)
+
+clean: $(SPEC)
+	$(RM) -r $(SOURCE0) $(ARCH)
+
+FORCE:

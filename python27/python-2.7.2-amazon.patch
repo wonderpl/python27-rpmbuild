@@ -1,0 +1,34 @@
+diff -up Python-2.7.2/Modules/Setup.dist.amazon Python-2.7.2/Modules/Setup.dist
+--- Python-2.7.2/Modules/Setup.dist.amazon	2012-02-17 15:21:23.000000000 -0800
++++ Python-2.7.2/Modules/Setup.dist	2012-02-17 15:22:59.000000000 -0800
+@@ -180,9 +180,9 @@ _collections _collectionsmodule.c # Cont
+ itertools itertoolsmodule.c	# Functions creating iterators for efficient looping 
+ strop stropmodule.c		# String manipulations
+ _functools _functoolsmodule.c	# Tools for working with functions and callable objects
+-#_elementtree -I$(srcdir)/Modules/expat -DHAVE_EXPAT_CONFIG_H -DUSE_PYEXPAT_CAPI _elementtree.c	# elementtree accelerator
+-#_pickle _pickle.c	# pickle accelerator
+-#datetime datetimemodule.c	# date/time type
++_elementtree -I$(srcdir)/Modules/expat -DHAVE_EXPAT_CONFIG_H -DUSE_PYEXPAT_CAPI _elementtree.c	# elementtree accelerator
++#_pickle _pickle.c	# pickle accelerator
++#datetime datetimemodule.c timemodule.c 	# date/time type
+ _bisect _bisectmodule.c	# Bisection algorithms
+ 
+ unicodedata unicodedata.c    # static Unicode character database
+@@ -237,7 +237,7 @@ resource resource.c	# Jeremy Hylton's rl
+ # #993173 says audioop works on 64-bit platforms, though.
+ # These represent audio samples or images as strings:
+ 
+-audioop audioop.c	# Operations on audio samples
++#audioop audioop.c	# Operations on audio samples
+ imageop imageop.c	# Operations on images
+ 
+ 
+@@ -302,7 +302,7 @@ _sha512 sha512module.c
+ # A Linux specific module -- off by default; this may also work on 
+ # some *BSDs.
+ 
+-linuxaudiodev linuxaudiodev.c
++#linuxaudiodev linuxaudiodev.c
+ 
+ 
+ # George Neville-Neil's timing module:

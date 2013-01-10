@@ -1,0 +1,45 @@
+diff -r 655aa0eeb778 plugins/php/uwsgiplugin.py
+--- a/plugins/php/uwsgiplugin.py	Tue Jun 26 07:59:35 2012 +0200
++++ b/plugins/php/uwsgiplugin.py	Tue Jun 26 23:47:16 2012 -0700
+@@ -22,7 +22,6 @@
+ LDFLAGS = os.popen(PHPPATH + ' --ldflags').read().rstrip().split()
+ if ld_run_path:
+     LDFLAGS.append('-L%s' % ld_run_path)
+-    os.environ['LD_RUN_PATH'] = ld_run_path
+ 
+ LIBS = [os.popen(PHPPATH + ' --libs').read().rstrip(), '-lphp5']
+ 
+diff -r 655aa0eeb778 plugins/python/uwsgiplugin.py
+--- a/plugins/python/uwsgiplugin.py	Tue Jun 26 07:59:35 2012 +0200
++++ b/plugins/python/uwsgiplugin.py	Tue Jun 26 23:47:16 2012 -0700
+@@ -20,10 +20,8 @@
+     else:
+         try:
+             LDFLAGS.append("-L%s" % sysconfig.get_config_var('LIBDIR'))
+-            os.environ['LD_RUN_PATH'] = "%s" % (sysconfig.get_config_var('LIBDIR'))
+         except:
+             LDFLAGS.append("-L%s/lib" % sysconfig.PREFIX)
+-            os.environ['LD_RUN_PATH'] = "%s/lib" % sysconfig.PREFIX
+ 
+ 
+     version = sysconfig.get_config_var('VERSION')
+diff -r 655aa0eeb778 plugins/rack/uwsgiplugin.py
+--- a/plugins/rack/uwsgiplugin.py	Tue Jun 26 07:59:35 2012 +0200
++++ b/plugins/rack/uwsgiplugin.py	Tue Jun 26 23:47:16 2012 -0700
+@@ -38,6 +38,5 @@
+ 
+ libpath = os.popen(RUBYPATH + " -e \"require 'rbconfig';print %s::CONFIG['libdir']\"" % rbconfig).read().rstrip()
+ LDFLAGS.append('-L' + libpath )
+-os.environ['LD_RUN_PATH'] = libpath
+ LIBS = os.popen(RUBYPATH + " -e \"require 'rbconfig';print '-l' + %s::CONFIG['RUBY_SO_NAME']\"" % rbconfig).read().rstrip().split()
+ 
+diff -r 655aa0eeb778 plugins/ruby19/uwsgiplugin.py
+--- a/plugins/ruby19/uwsgiplugin.py	Tue Jun 26 07:59:35 2012 +0200
++++ b/plugins/ruby19/uwsgiplugin.py	Tue Jun 26 23:47:16 2012 -0700
+@@ -40,6 +40,5 @@
+ 
+ libpath = os.popen(RUBYPATH + " -e \"require 'rbconfig';print %s::CONFIG['libdir']\"" % rbconfig).read().rstrip()
+ LDFLAGS.append('-L' + libpath )
+-os.environ['LD_RUN_PATH'] = libpath
+ LIBS = os.popen(RUBYPATH + " -e \"require 'rbconfig';print '-l' + %s::CONFIG['RUBY_SO_NAME']\"" % rbconfig).read().rstrip().split()
+ 

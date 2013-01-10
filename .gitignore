@@ -1,0 +1,4 @@
+*.tar.bz2
+*.tar.gz
+/*/noarch/
+/*/x86_64/
