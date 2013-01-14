@@ -1,4 +1,5 @@
 *.tar.bz2
 *.tar.gz
+*.zip
 /*/noarch/
 /*/x86_64/
