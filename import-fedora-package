@@ -1,0 +1,11 @@
+#!/bin/sh
+
+src=$1
+dst=${src/python-/python27-}
+
+yumdownloader --disablerepo rpmfusion\* --source $src
+rpmdev-extract $src*.rpm
+rm $src*.rpm
+mv $src*.src $dst
+mv $dst/$src.spec $dst/$dst.spec
+echo include ../Makefile.base >$dst/Makefile

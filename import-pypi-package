@@ -1,0 +1,8 @@
+#!/bin/sh
+
+src=$1
+dst=python27-${src,,}
+
+mkdir $dst
+echo include ../Makefile.base >$dst/Makefile
+pyp2rpm -n $src -d $dst -t python27-template  >$dst/$dst.spec
