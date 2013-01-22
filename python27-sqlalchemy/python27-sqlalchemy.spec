@@ -1,5 +1,5 @@
 Name: python27-sqlalchemy
-Version: 0.7.9
+Version: 0.8.0b2
 Release: 1
 Summary: Modular and flexible ORM library for python
 Group: Development/Libraries
@@ -39,5 +39,8 @@ rm -rf %{buildroot}
 %{python_sitearch}/*
 
 %changelog
+* Mon Jan 21 2013 Paul Egan <paulegan@rockpack.com> - 0.8.0b2-1
+- Bumped to 0.8 beta release
+
 * Fri Jan 11 2013 Paul Egan <paulegan@rockpack.com> - 0.7.9-1
 - Initial release
