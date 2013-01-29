@@ -1,0 +1,12 @@
+diff -up Imaging-1.1.7/libImaging/Imaging.h.buffer Imaging-1.1.7/libImaging/Imaging.h
+--- Imaging-1.1.7/libImaging/Imaging.h.buffer	2011-06-07 11:44:02.000000000 +0200
++++ Imaging-1.1.7/libImaging/Imaging.h	2011-06-07 11:46:17.000000000 +0200
+@@ -75,7 +75,7 @@ typedef struct ImagingPaletteInstance* I
+ struct ImagingMemoryInstance {
+ 
+     /* Format */
+-    char mode[4+1];	/* Band names ("1", "L", "P", "RGB", "RGBA", "CMYK") */
++    char mode[6+1];	/* Band names ("1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "BGR;xy") */
+     int type;		/* Data type (IMAGING_TYPE_*) */
+     int depth;		/* Depth (ignored in this version) */
+     int bands;		/* Number of bands (1, 2, 3, or 4) */
