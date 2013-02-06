@@ -63,6 +63,9 @@ source: $(SOURCE0)
 
 rpm: $(RPM)
 
+publish: $(RPM)
+	../publish-packages $^
+
 clean: $(SPEC)
 	$(RM) -r $(SOURCE0) $(ARCH)
 
