@@ -15,10 +15,13 @@ SOURCE0_URL ?= $(word 2, $(shell spectool -l -s 0 $(DEFINES) $(SPEC)))
 
 SOURCE0 ?= $(shell basename $(SOURCE0_URL))
 
+DEVREPO ?= development/x86_64
+PRODREPO ?= production/x86_64
+
 ARCH := noarch i386 x86_64
 
 
-.PHONY: all clean rpm publish
+.PHONY: all clean rpm signed publish devpublish
 
 all: rpm
 
@@ -63,8 +66,14 @@ source: $(SOURCE0)
 
 rpm: $(RPM)
 
-publish: $(RPM)
-	../publish-packages $^
+signed: $(RPM)
+	rpm --addsign $^
+
+publish: signed
+	../publish-packages --repopath $(PRODREPO) $(RPM)
+
+devpublish: $(RPM)
+	../publish-packages --repopath $(DEVREPO) $(RPM)
 
 clean: $(SPEC)
 	$(RM) -r $(SOURCE0) $(ARCH)

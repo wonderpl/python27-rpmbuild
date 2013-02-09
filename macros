@@ -17,3 +17,8 @@
 	/usr/lib/rpm/brp-python-bytecompile %{__python}
 
 %_default_patch_fuzz -1
+
+%_gpg_name %(rpmdev-packager)
+# Override the default gpg commands to remove the --passphrase-fd argument and allow GPG agent to be used
+%__gpg_check_password_cmd /bin/true
+%__gpg_sign_cmd %{__gpg} gpg --batch --no-verbose --no-armor --no-secmem-warning -u "%{_gpg_name}" -sbo %{__signature_filename} %{__plaintext_filename}
