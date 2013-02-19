@@ -1,5 +1,5 @@
 Name: python27-boto
-Version: 2.6.0
+Version: 2.8.0
 Release: 1
 License: MIT License
 Summary: A simple lightweight interface to Amazon Web Services
@@ -33,10 +33,13 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root)
-%{_bindir}/*
+%exclude %{_bindir}/*
 %{python_sitelib}/*
 
 %changelog
+* Tue Feb 19 2013 Paul Egan <paulegan@rockpack.com> - 2.8.0-1
+- Bumped
+
 * Thu Jan 10 2013 Paul Egan <paulegan@rockpack.com> - 2.6.0-1
 - Initial release
 
