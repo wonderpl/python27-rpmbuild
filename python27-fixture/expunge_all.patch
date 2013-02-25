@@ -1,0 +1,13 @@
+See http://code.google.com/p/fixture/issues/detail?id=55
+
+--- ./fixture/io.py	2009-11-19 15:53:15.000000000 +0000
++++ ./fixture/io.py	2013-02-25 00:45:43.176588411 +0000
+@@ -46,7 +46,7 @@
+         
+ def _expunge_all():
+     """exit function to remove all registered tmp dirs."""
+-    for d in _tmpdirs:
++    for d in _tmpdirs or []:
+         _expunge(d)
+     
+ # this seems to be a safer way to clean up since __del__ can
