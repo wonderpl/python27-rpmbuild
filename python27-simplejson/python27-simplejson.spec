@@ -1,5 +1,5 @@
 Name: python27-simplejson
-Version: 2.3.3
+Version: 3.1.0
 Release: 1%{?dist}
 Summary: Simple, fast, extensible JSON encoder/decoder for Python
 Group: Development/Languages
@@ -46,6 +46,9 @@ rm -rf %{buildroot}
 %{python_sitearch}/*
 
 %changelog
+* Fri Mar  8 2013 Paul Egan <paulegan@rockpack.com> - 3.1.0-1
+- Bumped
+
 * Thu Jan 10 2013 Paul Egan <paulegan@rockpack.com> - 2.3.3-1
 - Initial release
 
