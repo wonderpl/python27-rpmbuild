@@ -1,6 +1,6 @@
 Name: python27-alembic
 Version: 0.4.2
-Release: 1
+Release: 2
 Summary: A database migration tool for SQLAlchemy
 Group: Development/Libraries
 License: MIT
@@ -10,6 +10,7 @@ Source0: http://pypi.python.org/packages/source/a/alembic/alembic-%{version}.tar
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
 BuildRequires: python27-setuptools
+Requires: python27-mako
 
 %description
 Alembic is a new database migrations tool, written by the author
