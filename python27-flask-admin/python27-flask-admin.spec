@@ -1,6 +1,6 @@
 Name: python27-flask-admin
 Version: 1.0.4
-Release: 2
+Release: 3
 Summary: Simple and extensible admin interface framework for Flask
 Group: Development/Libraries
 License: BSD
@@ -11,7 +11,7 @@ Patch0: inline_models.patch
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
 BuildRequires: python27-setuptools
-Requires: python27-flask-wtf
+Requires: python27-flask-wtf python27-setuptools
 
 %description
 This is library for building adminstrative interface on top of Flask framework.
