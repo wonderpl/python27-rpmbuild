@@ -1,6 +1,6 @@
 Name: python27-alembic
-Version: 0.4.2
-Release: 2
+Version: 0.5.0
+Release: 1
 Summary: A database migration tool for SQLAlchemy
 Group: Development/Libraries
 License: MIT
@@ -44,5 +44,8 @@ rm -rf %{buildroot}
 %{_bindir}/*
 
 %changelog
+* Fri Apr  5 2013 Paul Egan <paulegan@rockpack.com> - 0.5.0-1
+- Bumped
+
 * Tue Mar 12 2013 Paul Egan <paulegan@rockpack.com> - 0.4.2-1
 - Initial release
