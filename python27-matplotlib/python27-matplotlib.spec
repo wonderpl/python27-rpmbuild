@@ -8,9 +8,9 @@ URL: http://matplotlib.org
 Source0: https://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-%{version}/matplotlib-%{version}.tar.gz
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
-BuildRequires: python27-setuptools python27-numpy
+BuildRequires: python27-setuptools python27-numpy python27-pytz
 BuildRequires: freetype-devel, libpng-devel, zlib-devel
-Requires: python27-numpy
+Requires: python27-numpy python27-pytz
 
 %description
 Matplotlib is a python 2D plotting library which produces publication
