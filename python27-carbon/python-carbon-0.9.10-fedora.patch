@@ -1,0 +1,79 @@
+diff -up ./conf/carbon.conf.example.orig ./conf/carbon.conf.example
+--- ./conf/carbon.conf.example.orig	2012-05-31 15:09:32.796575476 -0600
++++ ./conf/carbon.conf.example	2012-05-31 15:10:59.641332773 -0600
+@@ -30,10 +30,17 @@
+ #
+ #LOCAL_DATA_DIR = /opt/graphite/storage/whisper/
+ 
++STORAGE_DIR    = /var/lib/carbon/
++LOCAL_DATA_DIR = /var/lib/carbon/whisper/
++WHITELISTS_DIR = /var/lib/carbon/lists/
++CONF_DIR       = /etc/carbon/
++LOG_DIR        = /var/log/carbon/
++PID_DIR        = /var/run/
++
+ # Specify the user to drop privileges to
+ # If this is blank carbon runs as the user that invokes it
+ # This user must have write access to the local data directory
+-USER =
++USER = carbon
+ 
+ # Limit the size of the cache to avoid swapping or becoming CPU bound.
+ # Sorts and serving cache queries gets more expensive as the cache grows.
+diff -up ./setup.cfg.orig ./setup.cfg
+--- ./setup.cfg.orig	2012-05-31 15:20:40.649786911 -0600
++++ ./setup.cfg	2012-05-31 15:21:10.019706501 -0600
+@@ -1,9 +1,9 @@
+-[install]
+-prefix = /opt/graphite
+-install-lib = %(prefix)s/lib
++#[install]
++#prefix = /opt/graphite
++#install-lib = %(prefix)s/lib
+ 
+-[bdist_rpm]
+-requires = python-twisted
+-           whisper
++#[bdist_rpm]
++#requires = python-twisted
++#           whisper
+ 
+-post-install = distro/redhat/misc/postinstall
++#post-install = distro/redhat/misc/postinstall
+diff -up ./setup.py.orig ./setup.py
+--- ./setup.py.orig	2012-05-31 15:11:28.825257256 -0600
++++ ./setup.py	2012-05-31 15:29:55.807188675 -0600
+@@ -12,14 +12,20 @@ else:
+   setup_kwargs = dict()
+ 
+ 
+-storage_dirs = [ ('storage/whisper',[]), ('storage/lists',[]),
+-                 ('storage/log',[]), ('storage/rrd',[]) ]
+-conf_files = [ ('conf', glob('conf/*.example')) ]
++#storage_dirs = [ ('storage/whisper',[]), ('storage/lists',[]),
++#                 ('storage/log',[]), ('storage/rrd',[]) ]
++#conf_files = [ ('conf', glob('conf/*.example')) ]
+ #XXX Need a way to have these work for bdist_rpm but be left alone for everything else
+ #init_scripts = [ ('/etc/init.d', ['distro/redhat/init.d/carbon-cache',
+ #                                  'distro/redhat/init.d/carbon-relay',
+ #                                  'distro/redhat/init.d/carbon-aggregator']) ]
+ 
++storage_dirs = [
++    ('/var/lib/carbon/whisper',[]),
++    ('/var/lib/carbon/lists',[]),
++    ('/var/lib/carbon/rrd',[])
++]
++
+ setup(
+   name='carbon',
+   version='0.9.10',
+@@ -32,7 +38,8 @@ setup(
+   package_dir={'' : 'lib'},
+   scripts=glob('bin/*'),
+   package_data={ 'carbon' : ['*.xml'] },
+-  data_files=storage_dirs + conf_files, # + init_scripts,
++  #data_files=storage_dirs + conf_files, # + init_scripts,
++  data_files=storage_dirs,
+   install_requires=['twisted', 'txamqp'],
+   **setup_kwargs
+ )
