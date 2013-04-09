@@ -1,5 +1,5 @@
 Name: uwsgi
-Version: 1.4.4
+Version: 1.4.9
 Release: 1%{?dist}
 Summary: Fast, self-healing, application container server
 Group: System Environment/Daemons   
@@ -29,7 +29,7 @@ core.
 %prep
 %setup -q
 cat >>buildconf/default.ini <<-EOF
-	embedded_plugins = echo, ping, corerouter, http, python
+	embedded_plugins = echo, ping, corerouter, http, python, carbon
 	plugins = admin, cache, logfile
 	_plugin_dir = %{_libdir}/%{name}
 EOF
@@ -57,6 +57,8 @@ CFLAGS="%{optflags} -Wno-unused-but-set-variable" %{__python} uwsgiconfig.py --b
 %{python_sitelib}/*
 
 %changelog
+* Tue Apr  9 2013 Paul Egan <paulegan@rockpack.com> - 1.4.9-1
+- Bumped and enabled carbon plugin
+
 * Mon Jan  7 2013 Paul Egan <paulegan@rockpack.com> - 1.4.4-1
 - Initial release
-

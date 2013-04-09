@@ -24,15 +24,17 @@ diff -r 655aa0eeb778 plugins/python/uwsgiplugin.py
  
      version = sysconfig.get_config_var('VERSION')
 diff -r 655aa0eeb778 plugins/rack/uwsgiplugin.py
---- a/plugins/rack/uwsgiplugin.py	Tue Jun 26 07:59:35 2012 +0200
-+++ b/plugins/rack/uwsgiplugin.py	Tue Jun 26 23:47:16 2012 -0700
-@@ -38,6 +38,5 @@
+--- a/plugins/rack/uwsgiplugin.py	2013-03-09 09:01:34.000000000 +0000
++++ b/plugins/rack/uwsgiplugin.py	2013-04-09 12:54:48.000000000 +0000
+@@ -44,7 +44,6 @@
  
- libpath = os.popen(RUBYPATH + " -e \"require 'rbconfig';print %s::CONFIG['libdir']\"" % rbconfig).read().rstrip()
- LDFLAGS.append('-L' + libpath )
--os.environ['LD_RUN_PATH'] = libpath
- LIBS = os.popen(RUBYPATH + " -e \"require 'rbconfig';print '-l' + %s::CONFIG['RUBY_SO_NAME']\"" % rbconfig).read().rstrip().split()
- 
+ if has_shared == 'yes':
+     LDFLAGS.append('-L' + libpath )
+-    os.environ['LD_RUN_PATH'] = libpath
+     LIBS.append(os.popen(RUBYPATH + " -e \"require 'rbconfig';print '-l' + %s::CONFIG['RUBY_SO_NAME']\"" % rbconfig).read().rstrip())
+ else:
+     GCC_LIST.append("%s/%s" % (libpath, os.popen(RUBYPATH + " -e \"require 'rbconfig';print %s::CONFIG['LIBRUBY_A']\"" % rbconfig).read().rstrip()))
+
 diff -r 655aa0eeb778 plugins/ruby19/uwsgiplugin.py
 --- a/plugins/ruby19/uwsgiplugin.py	Tue Jun 26 07:59:35 2012 +0200
 +++ b/plugins/ruby19/uwsgiplugin.py	Tue Jun 26 23:47:16 2012 -0700
