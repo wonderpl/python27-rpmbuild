@@ -1,0 +1,46 @@
+Run daemon as nobody
+
+--- pystatsd/daemon.py	2013-04-18 18:16:35.842941686 +0100
++++ pystatsd/daemon.py	2013-04-18 18:17:08.394671176 +0100
+@@ -72,7 +72,10 @@
+         pid = None
+         if os.path.exists(self.pidfile):
+             with open(self.pidfile, 'r') as fp:
+-                pid = int(fp.read().strip())
++                try:
++                    pid = int(fp.read().strip())
++                except ValueError:
++                    pass
+ 
+         if pid:
+             msg = 'pidfile (%s) exists. Daemon already running?\n'
+--- redhat/pystatsd.init	2013-04-18 18:38:24.882905580 +0100
++++ redhat/pystatsd.init	2013-04-18 18:40:56.576637745 +0100
+@@ -2,7 +2,7 @@
+ #
+ # pystatsd      This shell script takes care of starting and stopping pystatsd.
+ #
+-# chkconfig: 2345 80 30
++# chkconfig: - 80 30
+ # description: Pystatsd is a front end/proxy for the Graphite stats collection and graphing server.
+ #              
+ # processname: pystatsd
+@@ -13,8 +13,6 @@
+ # Provides: pystatsd
+ # Required-Start: $local_fs $network
+ # Required-Stop: $local_fs $network
+-# Default-Start: 2 3 4 5
+-# Default-Stop: 0 1 6
+ # Short-Description: start and stop pystatsd
+ # Description: Pystatsd is a front end/proxy for the Graphite stats collection and graphing server.
+ ### END INIT INFO
+@@ -35,7 +33,8 @@
+     # Start daemons.
+     ret=0
+     echo -n $"Starting $prog: "
+-    daemon /usr/bin/pystatsd-server --daemon --pidfile $PIDFILE
++    install -o nobody /dev/null $PIDFILE
++    daemon --user nobody /usr/bin/pystatsd-server --daemon --pidfile $PIDFILE
+     RETVAL=$?
+     echo
+     [ $RETVAL -eq 0 ] && touch /var/lock/subsys/pystatsd

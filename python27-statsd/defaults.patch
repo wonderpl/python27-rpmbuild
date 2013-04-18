@@ -1,0 +1,16 @@
+--- pystatsd/server.py.orig	2013-04-18 18:30:33.506850842 +0100
++++ pystatsd/server.py	2013-04-18 18:32:09.870045150 +0100
+@@ -303,10 +303,10 @@
+     parser.add_argument('--ganglia-gmetric-exec', dest='gmetric_exec', help='Use gmetric executable. Defaults to /usr/bin/gmetric', type=str, default="/usr/bin/gmetric")
+     parser.add_argument('--ganglia-gmetric-options', dest='gmetric_options', help='Options to pass to gmetric. Defaults to -d 60', type=str, default="-d 60")
+     # 
+-    parser.add_argument('--flush-interval', dest='flush_interval', help='how often to send data to graphite in millis (default: 10000)', type=int, default=10000)
++    parser.add_argument('--flush-interval', dest='flush_interval', help='how often to send data to graphite in millis (default: 30000)', type=int, default=30000)
+     parser.add_argument('--no-aggregate-counters', dest='no_aggregate_counters', help='should statsd report counters as absolute instead of count/sec', action='store_true')
+-    parser.add_argument('--counters-prefix', dest='counters_prefix', help='prefix to append before sending counter data to graphite (default: stats)', type=str, default='stats')
+-    parser.add_argument('--timers-prefix', dest='timers_prefix', help='prefix to append before sending timing data to graphite (default: stats.timers)', type=str, default='stats.timers')
++    parser.add_argument('--counters-prefix', dest='counters_prefix', help='prefix to append before sending counter data to graphite (default: statsd)', type=str, default='statsd')
++    parser.add_argument('--timers-prefix', dest='timers_prefix', help='prefix to append before sending timing data to graphite (default: statsd)', type=str, default='statsd')
+     parser.add_argument('-t', '--pct', dest='pct', help='stats pct threshold (default: 90)', type=int, default=90)
+     parser.add_argument('-D', '--daemon', dest='daemonize', action='store_true', help='daemonize', default=False)
+     parser.add_argument('--pidfile', dest='pidfile', action='store', help='pid file', default='/var/run/pystatsd.pid')
