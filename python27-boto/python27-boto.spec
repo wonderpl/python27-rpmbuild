@@ -1,10 +1,10 @@
 Name: python27-boto
-Version: 2.8.0
+Version: 2.9.0
 Release: 1
 License: MIT License
 Summary: A simple lightweight interface to Amazon Web Services
 Group: Development/Libraries
-URL: http://code.google.com/p/boto/
+URL: https://github.com/boto/boto
 Source0: http://pypi.python.org/packages/source/b/boto/boto-%{version}.tar.gz
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
@@ -37,6 +37,9 @@ rm -rf %{buildroot}
 %{python_sitelib}/*
 
 %changelog
+* Tue Apr 22 2013 Paul Egan <paulegan@rockpack.com> - 2.9.0-1
+- Bumped
+
 * Tue Feb 19 2013 Paul Egan <paulegan@rockpack.com> - 2.8.0-1
 - Bumped
 
