@@ -8,7 +8,7 @@ URL: http://www.gevent.org/
 Source0: https://github.com/surfly/gevent/archive/%{version}.tar.gz
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
-BuildRequires: python27-setuptools python27-greenlet
+BuildRequires: python27-setuptools python27-cython python27-greenlet
 Requires: python27-greenlet
 
 %description
