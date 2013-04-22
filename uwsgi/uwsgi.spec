@@ -1,5 +1,5 @@
 Name: uwsgi
-Version: 1.4.9
+Version: 1.9.6
 Release: 1%{?dist}
 Summary: Fast, self-healing, application container server
 Group: System Environment/Daemons   
@@ -29,7 +29,7 @@ core.
 %prep
 %setup -q
 cat >>buildconf/default.ini <<-EOF
-	embedded_plugins = echo, ping, corerouter, http, python, carbon
+	embedded_plugins = echo, ping, corerouter, http, python, gevent, carbon
 	plugins = admin, cache, logfile
 	_plugin_dir = %{_libdir}/%{name}
 EOF
@@ -49,7 +49,7 @@ CFLAGS="%{optflags} -Wno-unused-but-set-variable" %{__python} uwsgiconfig.py --b
 %{__install} -p -m 0644 uwsgidecorators.py %{buildroot}%{python_sitelib}
 
 %files 
-%doc ChangeLog LICENSE README
+%doc LICENSE README
 %{_sbindir}/%{name}
 %dir %{_libdir}/%{name}
 %{_libdir}/%{name}/*.so
@@ -57,6 +57,9 @@ CFLAGS="%{optflags} -Wno-unused-but-set-variable" %{__python} uwsgiconfig.py --b
 %{python_sitelib}/*
 
 %changelog
+* Mon Apr 22 2013 Paul Egan <paulegan@rockpack.com> - 1.9.6-1
+- Bumped and enabled gevent plugin
+
 * Tue Apr  9 2013 Paul Egan <paulegan@rockpack.com> - 1.4.9-1
 - Bumped and enabled carbon plugin
 
