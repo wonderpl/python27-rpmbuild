@@ -1,11 +1,12 @@
 Name: python27-grequests
 Version: 0.2.0
-Release: 1
+Release: 2
 Summary: Requests + Gevent
 Group: Development/Libraries
 License: BSD
 URL: https://github.com/kennethreitz/grequests
 Source0: http://pypi.python.org/packages/source/g/grequests/grequests-%{version}.tar.gz
+Patch1: requests-compat.patch
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
@@ -18,6 +19,7 @@ Requests easily.
 
 %prep
 %setup -q -n grequests-%{version}
+%patch1 -p0
 
 %build
 %{__python} setup.py build

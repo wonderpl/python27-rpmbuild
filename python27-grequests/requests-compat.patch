@@ -1,0 +1,31 @@
+--- grequests.py	2013-04-22 18:28:55.521666691 +0100
++++ grequests.py	2013-04-22 19:04:29.807798417 +0100
+@@ -82,18 +82,18 @@
+     return gevent.spawn(r.send, stream=stream)
+ 
+ 
+-# Shortcuts for creating AsyncRequest with appropriate HTTP method
+-get = partial(AsyncRequest, 'GET')
+-options = partial(AsyncRequest, 'OPTIONS')
+-head = partial(AsyncRequest, 'HEAD')
+-post = partial(AsyncRequest, 'POST')
+-put = partial(AsyncRequest, 'PUT')
+-patch = partial(AsyncRequest, 'PATCH')
+-delete = partial(AsyncRequest, 'DELETE')
+-
+ # synonym
+ def request(method, url, **kwargs):
+-    return AsyncRequest(method, url, **kwargs)
++    return AsyncRequest(method, url, **kwargs).send()
++
++
++get = partial(request, 'get')
++options = partial(request, 'options')
++head = partial(request, 'head')
++post = partial(request, 'post')
++put = partial(request, 'put')
++patch = partial(request, 'patch')
++delete = partial(request, 'delete')
+ 
+ 
+ def map(requests, stream=False, size=None):
