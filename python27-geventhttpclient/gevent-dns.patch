@@ -1,0 +1,11 @@
+--- src/geventhttpclient/useragent.py	2013-04-21 14:53:07.000000000 +0100
++++ src/geventhttpclient/useragent.py	2013-04-24 16:14:56.192830796 +0100
+@@ -278,7 +278,7 @@
+         """
+         if isinstance(e, (socket.timeout, gevent.Timeout)):
+             return e
+-        elif isinstance(e, (socket.error, gevent.dns.DNSError)) and \
++        elif isinstance(e, socket.error) and \
+                 e.errno in set([errno.ETIMEDOUT, errno.ENOLINK, errno.ENOENT, errno.EPIPE]):
+             return e
+         elif isinstance(e, ssl.SSLError) and 'read operation timed out' in str(e):

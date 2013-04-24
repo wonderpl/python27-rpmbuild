@@ -6,6 +6,7 @@ Group: Development/Libraries
 License: MIT
 URL: https://github.com/gwik/geventhttpclient
 Source0: https://github.com/gwik/geventhttpclient/archive/master.tar.gz
+Patch1: gevent-dns.patch
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: python27-setuptools
@@ -16,6 +17,7 @@ A high performance, concurrent HTTP client library for python using gevent.
 
 %prep
 %setup -q -n geventhttpclient-master
+%patch1 -p0
 
 %build
 CFLAGS="$RPM_OPT_FLAGS" %{__python} setup.py build
