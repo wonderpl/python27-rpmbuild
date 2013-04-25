@@ -1,12 +1,13 @@
 Name: uwsgi
 Version: 1.9.6
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: Fast, self-healing, application container server
 Group: System Environment/Daemons   
 License: GPLv2
 URL: http://projects.unbit.it/uwsgi
 Source0: http://projects.unbit.it/downloads/%{name}-%{version}.tar.gz
 Patch0: uwsgi_fix_rpath.patch
+Patch1: carbon-listen-queue.patch
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: python2-devel, libxml2-devel, libuuid-devel
@@ -34,6 +35,7 @@ cat >>buildconf/default.ini <<-EOF
 	_plugin_dir = %{_libdir}/%{name}
 EOF
 %patch0 -p1
+%patch1 -p0
 
 %build
 CFLAGS="%{optflags} -Wno-unused-but-set-variable" %{__python} uwsgiconfig.py --build

@@ -1,0 +1,15 @@
+--- plugins/carbon/carbon.c	2013-04-25 18:25:38.615186549 +0100
++++ plugins/carbon/carbon.c	2013-04-25 18:25:41.148167836 +0100
+@@ -381,6 +381,12 @@
+ 		wok = carbon_write(fd, "%s%s.%s.harakiri %llu %llu\n", u_carbon.root_node, u_carbon.hostname, u_carbon.id, (unsigned long long) total_harakiri, (unsigned long long) now);
+ 		if (!wok) goto clear;
+ 
++		wok = carbon_write(fd, "%s%s.%s.listen_queue %llu %llu\n", u_carbon.root_node, u_carbon.hostname, u_carbon.id, (unsigned long long) uwsgi.shared->options[UWSGI_OPTION_BACKLOG_STATUS], (unsigned long long) now);
++		if (!wok) goto clear;
++
++		wok = carbon_write(fd, "%s%s.%s.listen_queue_errors %llu %llu\n", u_carbon.root_node, u_carbon.hostname, u_carbon.id, (unsigned long long) uwsgi.shared->options[UWSGI_OPTION_BACKLOG_ERRORS], (unsigned long long) now);
++		if (!wok) goto clear;
++
+ 		usl->healthy = 1;
+ 		usl->errors = 0;
+ 
