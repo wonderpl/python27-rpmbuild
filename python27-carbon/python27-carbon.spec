@@ -1,6 +1,6 @@
 Name: python27-carbon
 Version: 0.9.10
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: Back-end data caching and persistence daemon for Graphite
 Group: System Environment/Daemons
 License: ASL 2.0
@@ -60,22 +60,22 @@ popd
 # Install default configuration files
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/carbon
 %{__install} -Dp -m0644 conf/carbon.conf.example %{buildroot}%{_sysconfdir}/carbon/carbon.conf
-%{__install} -Dp -m0644 conf/storage-schemas.conf.example %{buildroot}%{_sysconfdir}/carbon/storage-schemas.conf
+#%{__install} -Dp -m0644 conf/storage-schemas.conf.example %{buildroot}%{_sysconfdir}/carbon/storage-schemas.conf
 
 %pre
 getent group carbon >/dev/null || groupadd -r carbon
 getent passwd carbon >/dev/null || \
-    useradd -r -g carbon -d %{_sharedstatedir}/carbon \
-    -s /sbin/nologin -c "Carbon cache daemon" carbon
+	useradd -r -g carbon -d %{_sharedstatedir}/carbon \
+		-s /sbin/nologin -c "Carbon cache daemon" carbon
 
 %preun
 if [ $1 -eq 0 ] ; then
-    /sbin/service carbon-cache stop >/dev/null 2>&1
-    /sbin/chkconfig --del carbon-cache
-    /sbin/service carbon-relay stop >/dev/null 2>&1
-    /sbin/chkconfig --del carbon-relay
-    /sbin/service carbon-aggregator stop >/dev/null 2>&1
-    /sbin/chkconfig --del carbon-aggregator
+	/sbin/service carbon-cache stop >/dev/null 2>&1
+	/sbin/chkconfig --del carbon-cache
+	/sbin/service carbon-relay stop >/dev/null 2>&1
+	/sbin/chkconfig --del carbon-relay
+	/sbin/service carbon-aggregator stop >/dev/null 2>&1
+	/sbin/chkconfig --del carbon-aggregator
 fi
 
 %post
@@ -85,8 +85,8 @@ fi
 
 %postun
 if [ $1 = 0 ]; then
-  getent passwd carbon >/dev/null && \
-      userdel -r carbon 2>/dev/null
+	getent passwd carbon >/dev/null && \
+		userdel -r carbon 2>/dev/null
 fi
 
 %files
