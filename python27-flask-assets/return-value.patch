@@ -1,0 +1,10 @@
+--- src/flask_assets.py	2012-11-23 18:26:11.000000000 +0000
++++ src/flask_assets.py	2013-05-29 11:09:55.583254458 +0100
+@@ -380,6 +380,6 @@
+             prog = '%s %s' % (os.path.basename(sys.argv[0]), sys.argv[1])
+ 
+             impl = self.implementation(self.env, prog=prog, log=self.log)
+-            impl.main(args)
++            return impl.main(args)
+ 
+     __all__ = __all__ + ('ManageAssets',)
