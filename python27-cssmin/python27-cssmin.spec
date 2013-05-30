@@ -25,6 +25,7 @@ values can get rewritten to shorter notation if available.
 %install
 rm -rf %{buildroot}
 %{__python} setup.py install -O1 --skip-build --root %{buildroot}
+mv %{buildroot}%{_bindir}/{,py}cssmin
 
 %check
 %{__python} setup.py test
