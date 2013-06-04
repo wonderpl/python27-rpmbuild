@@ -1,0 +1,85 @@
+--- src/collectors/postgres/postgres.py	2013-06-04 13:43:37.557299038 +0100
++++ src/collectors/postgres/postgres.py	2013-06-04 14:40:06.699943565 +0100
+@@ -31,6 +31,7 @@
+             'port': 'Port number',
+             'underscore': 'Convert _ to .',
+             'extended': 'Enable collection of extended database stats',
++            'replication_master': 'Connection dsn for replication master',
+         })
+         return config_help
+ 
+@@ -47,6 +48,7 @@
+             'port': 5432,
+             'underscore': False,
+             'extended': False,
++            'replication_master': None,
+             'method': 'Threaded'
+         })
+         return config
+@@ -61,6 +63,9 @@
+         for db in self._get_db_names():
+             self.connections[db] = self._connect(database=db)
+ 
++        if self.config['replication_master']:
++            self.connections['_master'] = psycopg2.connect(self.config['replication_master'])
++
+         if str_to_bool(self.config['extended']):
+             metrics = registry['extended']
+         else:
+@@ -81,7 +86,7 @@
+             WHERE datallowconn AND NOT datistemplate
+             AND NOT datname='postgres' ORDER BY 1
+         """
+-        conn = self._connect()
++        conn = self._connect('postgres')
+         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+         cursor.execute(query)
+         datnames = [d['datname'] for d in cursor.fetchall()]
+@@ -126,6 +131,9 @@
+         self.data = list()
+ 
+         for db, conn in self.connections.iteritems():
++            # Skip connection to replication master
++            if db == '_master':
++                continue
+             cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+             cursor.execute(self.query, self.parameters)
+ 
+@@ -439,10 +447,37 @@
+     """
+ 
+ 
++class DatabaseReplicationStats(QueryStats):
++    path = "database.replication.%(metric)s"
++
++    def fetch(self):
++        master_conn = slave_conn = None
++        for db, conn in self.connections.iteritems():
++            if db == '_master':
++                master_conn = conn
++            else:
++                slave_conn = conn
++        if not (master_conn and slave_conn):
++            self.data = []
++            return
++
++        cursor = master_conn.cursor()
++        cursor.execute('select pg_current_xlog_location()')
++        master_loc = cursor.fetchone()[0]
++
++        cursor = slave_conn.cursor()
++        cursor.execute('select pg_xlog_location_diff(%s, pg_last_xlog_replay_location())',
++                       (master_loc,))
++        replay_lag = cursor.fetchone()[0]
++
++        self.data = [dict(metric='replay_lag', value=replay_lag)]
++
++
+ registry = {
+     'basic': (
+         DatabaseStats,
+         DatabaseConnectionCount,
++        DatabaseReplicationStats,
+     ),
+     'extended': (
+         DatabaseStats,

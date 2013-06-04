@@ -1,6 +1,13 @@
---- ../src/collectors/postgres/postgres.py	2013-03-12 04:33:20.000000000 +0000
-+++ ../src/collectors/postgres/postgres.py	2013-04-12 14:52:21.000000000 +0000
-@@ -13,10 +13,13 @@ import diamond.collector
+Update to e4ce8bc6fc16b25c99170a43180750fdcdad1f3d
+https://github.com/BrightcoveOS/Diamond/blob/e4ce8bc6fc16b25c99170a43180750fdcdad1f3d/src/collectors/postgres/postgres.py
+
+--- src/collectors/postgres/postgres.py	2013-06-04 13:41:19.390626958 +0100
++++ src/collectors/postgres/postgres.py	2013-06-04 13:41:31.557586054 +0100
+@@ -10,9 +10,11 @@
+ """
+ 
+ import diamond.collector
++from diamond.collector import str_to_bool
  
  try:
      import psycopg2
@@ -8,13 +15,7 @@
      psycopg2  # workaround for pyflakes issue #13
  except ImportError:
      psycopg2 = None
- 
-+registry = dict(basic={}, extended={})
-+
- 
- class PostgresqlCollector(diamond.collector.Collector):
- 
-@@ -27,7 +30,8 @@ class PostgresqlCollector(diamond.collec
+@@ -27,7 +29,8 @@
              'user': 'Username',
              'password': 'Password',
              'port': 'Port number',
@@ -24,7 +25,7 @@
          })
          return config_help
  
-@@ -43,7 +47,9 @@ class PostgresqlCollector(diamond.collec
+@@ -43,7 +46,9 @@
              'password': 'postgres',
              'port': 5432,
              'underscore': False,
@@ -35,7 +36,7 @@
          return config
  
      def collect(self):
-@@ -51,58 +57,414 @@ class PostgresqlCollector(diamond.collec
+@@ -51,58 +56,411 @@
              self.log.error('Unable to import module psycopg2')
              return {}
  
@@ -91,30 +92,27 @@
 -        for (database, connection) in connections:
 -            self.publish("database.%s.connections" % (
 -                database), connection)
+-
+-        self.cursor.close()
+-        self.conn.close()
 +        # Create database-specific connections
 +        self.connections = {}
 +        for db in self._get_db_names():
 +            self.connections[db] = self._connect(database=db)
 +
-+        if self.config['extended']:
++        if str_to_bool(self.config['extended']):
 +            metrics = registry['extended']
 +        else:
 +            metrics = registry['basic']
 +
 +        # Iterate every QueryStats class
-+        for klass in metrics.itervalues():
++        for klass in metrics:
 +            stat = klass(self.connections, underscore=self.config['underscore'])
 +            stat.fetch()
 +            [self.publish(metric, value) for metric, value in stat]
 +
 +        # Cleanup
 +        [conn.close() for conn in self.connections.itervalues()]
-+
-+    def publish(self, metric, value, **kwargs):
-+        # Don't publish empty values
-+        if not value or value == '0':
-+            return
-+        super(PostgresqlCollector, self).publish(metric, value, **kwargs)
 +
 +    def _get_db_names(self):
 +        query = """
@@ -134,27 +132,22 @@
 +            datnames = ['postgres']
 +        return datnames
 +
-+    def _connect(self, database='postgres'):
-+        conn = psycopg2.connect(
-+            host=self.config['host'],
-+            user=self.config['user'],
-+            password=self.config['password'],
-+            port=self.config['port'],
-+            database=database)
++    def _connect(self, database=None):
++        conn_args = {
++          'host': self.config['host'],
++          'user': self.config['user'],
++          'password': self.config['password'],
++          'port': self.config['port']
++        }
++
++        if database:
++            conn_args['database'] = database
++
++        conn = psycopg2.connect(**conn_args)
 +
 +        # Avoid using transactions, set isolation level to autocommit
 +        conn.set_isolation_level(0)
 +        return conn
-+
-+
-+def basic(cls):
-+    registry['basic'][cls.__name__] = cls
-+    return cls
-+
-+
-+def extended(cls):
-+    registry['extended'][cls.__name__] = cls
-+    return cls
 +
 +
 +class QueryStats(object):
@@ -193,7 +186,8 @@
 +                            continue
 +
 +                        self.data.append({
-+                            'datname': self._translate_datname(row.get('datname', db)),
++                            'datname': self._translate_datname(row.get(
++                                'datname', db)),
 +                            'schemaname': row.get('schemaname', None),
 +                            'relname': row.get('relname', None),
 +                            'indexrelname': row.get('indexrelname', None),
@@ -215,8 +209,6 @@
 +            yield (self.path % data_point, data_point['value'])
 +
 +
-+@basic
-+@extended
 +class DatabaseStats(QueryStats):
 +    """
 +    Database-level summary stats
@@ -244,7 +236,6 @@
 +    """
 +
 +
-+@extended
 +class UserTableStats(QueryStats):
 +    path = "%(datname)s.tables.%(schemaname)s.%(relname)s.%(metric)s"
 +    multi_db = True
@@ -265,7 +256,6 @@
 +    """
 +
 +
-+@extended
 +class UserIndexStats(QueryStats):
 +    path = "%(datname)s.indexes.%(schemaname)s.%(relname)s." \
 +           "%(indexrelname)s.%(metric)s"
@@ -281,7 +271,6 @@
 +    """
 +
 +
-+@extended
 +class UserTableIOStats(QueryStats):
 +    path = "%(datname)s.tables.%(schemaname)s.%(relname)s.%(metric)s"
 +    multi_db = True
@@ -296,7 +285,6 @@
 +    """
 +
 +
-+@extended
 +class UserIndexIOStats(QueryStats):
 +    path = "%(datname)s.indexes.%(schemaname)s.%(relname)s." \
 +           "%(indexrelname)s.%(metric)s"
@@ -311,7 +299,6 @@
 +    """
 +
 +
-+@extended
 +class ConnectionStateStats(QueryStats):
 +    path = "%(datname)s.connections.%(metric)s"
 +    multi_db = True
@@ -345,7 +332,6 @@
 +    """
 +
 +
-+@extended
 +class LockStats(QueryStats):
 +    path = "%(datname)s.locks.%(metric)s"
 +    multi_db = False
@@ -358,7 +344,6 @@
 +    """
 +
 +
-+@extended
 +class RelationSizeStats(QueryStats):
 +    path = "%(datname)s.sizes.%(schemaname)s.%(relname)s.%(metric)s"
 +    multi_db = True
@@ -376,7 +361,6 @@
 +    """
 +
 +
-+@extended
 +class BackgroundWriterStats(QueryStats):
 +    path = "bgwriter.%(metric)s"
 +    multi_db = False
@@ -392,7 +376,6 @@
 +    """
 +
 +
-+@extended
 +class WalSegmentStats(QueryStats):
 +    path = "wals.%(metric)s"
 +    multi_db = False
@@ -403,7 +386,6 @@
 +    """
 +
 +
-+@extended
 +class TransactionCount(QueryStats):
 +    path = "transactions.%(metric)s"
 +    multi_db = False
@@ -418,7 +400,6 @@
 +    """
 +
 +
-+@extended
 +class IdleInTransactions(QueryStats):
 +    path = "%(datname)s.longest_running.%(metric)s"
 +    multi_db = True
@@ -432,7 +413,6 @@
 +    """
 +
 +
-+@extended
 +class LongestRunningQueries(QueryStats):
 +    path = "%(datname)s.longest_running.%(metric)s"
 +    multi_db = True
@@ -449,7 +429,6 @@
 +    """
 +
 +
-+@extended
 +class UserConnectionCount(QueryStats):
 +    path = "%(datname)s.user_connections.%(metric)s"
 +    multi_db = True
@@ -463,8 +442,6 @@
 +    """
 +
 +
-+@basic
-+@extended
 +class DatabaseConnectionCount(QueryStats):
 +    path = "database.%(metric)s.connections"
 +    multi_db = False
@@ -476,7 +453,6 @@
 +    """
 +
 +
-+@extended
 +class TableScanStats(QueryStats):
 +    path = "%(datname)s.scans.%(metric)s"
 +    multi_db = True
@@ -488,7 +464,6 @@
 +    """
 +
 +
-+@extended
 +class TupleAccessStats(QueryStats):
 +    path = "%(datname)s.tuples.%(metric)s"
 +    multi_db = True
@@ -501,6 +476,30 @@
 +               COALESCE(sum(n_tup_hot_upd),0) AS hotupdated
 +        FROM pg_stat_user_tables
 +    """
- 
--        self.cursor.close()
--        self.conn.close()
++
++
++registry = {
++    'basic': (
++        DatabaseStats,
++        DatabaseConnectionCount,
++    ),
++    'extended': (
++        DatabaseStats,
++        DatabaseConnectionCount,
++        UserTableStats,
++        UserIndexStats,
++        UserTableIOStats,
++        UserIndexIOStats,
++        ConnectionStateStats,
++        LockStats,
++        RelationSizeStats,
++        BackgroundWriterStats,
++        WalSegmentStats,
++        TransactionCount,
++        IdleInTransactions,
++        LongestRunningQueries,
++        UserConnectionCount,
++        TableScanStats,
++        TupleAccessStats,
++    ),
++}

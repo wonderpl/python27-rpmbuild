@@ -1,6 +1,6 @@
 Name: diamond
 Version: 3.3.286
-Release: 3
+Release: 5
 Summary: Smart data producer for graphite graphing package
 Group: Development/Libraries
 License: MIT License
@@ -9,12 +9,13 @@ Source0: http://pypi.python.org/packages/source/d/diamond/diamond-%{version}.tar
 Source1: diamond.conf
 Source2: collector_defaults
 Patch1: postgres-collector.patch
-Patch2: elasticsearch-collector.patch
+Patch2: postgres-collector-replication.patch
+Patch3: elasticsearch-collector.patch
 
 BuildArch: noarch
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: python27-setuptools
-Requires: python27-configobj
+Requires: python27-configobj python27-psycopg2
 
 %description
 Diamond is a python daemon that collects system metrics and publishes them to
@@ -24,11 +25,12 @@ collectors for gathering metrics from almost any source.
 
 %prep
 %setup -q -n diamond-%{version}
-%patch1 -p1
+%patch1 -p0
 %patch2 -p0
+%patch3 -p0
 
 # Force Amazon Linux to be recognised like CentOS
-sed -e "s/'centos', /'', &/" -i setup.py
+sed -e "s/'centos', /'', 'fedora', &/" -i setup.py
 
 %build
 %{__python} setup.py build
