@@ -1,4 +1,4 @@
-%define _buildid .18
+#%define _buildid .18
 
 # ======================================================
 # Conditionals and other variables controlling the build
@@ -106,8 +106,8 @@
 Summary: An interpreted, interactive, object-oriented programming language
 Name: %{python}
 # Remember to also rebase python-docs when changing this:
-Version: 2.7.3
-Release: 2%{?_buildid}%{?dist}
+Version: 2.7.5
+Release: 1%{?_buildid}%{?dist}
 License: Python
 Group: Development/Languages
 Requires: %{python}-libs%{?_isa} = %{version}-%{release}
@@ -455,8 +455,8 @@ Patch114: python-2.7rc1-statvfs-f_flag-constants.patch
 #    from _struct import *
 # ImportError: No module named _struct
 #
-# For now, revert this patch:
-Patch121: python-2.7rc2-r79310.patch
+# This patch adds the build Modules directory to build path.
+Patch121: 00121-add-Modules-to-build-path.patch
 
 # COUNT_ALLOCS is useful for debugging, but the upstream behaviour of always
 # emitting debug info to stdout on exit is too verbose and makes it harder to
@@ -747,10 +747,11 @@ rm -r Modules/zlib || exit 1
 
 #patch115: upstream as of Python 2.7.3
 
-%patch121 -p0 -R
+%patch121 -p1
 %patch125 -p1 -b .less-verbose-COUNT_ALLOCS
-%patch126 -p0 -b .fix-dbm_contains-on-64bit-bigendian
-%patch127 -p1 -b .fix-test_structmember-on-64bit-bigendian
+# Upstream as of 2.7.5
+#%patch126 -p0 -b .fix-dbm_contains-on-64bit-bigendian
+#%patch127 -p1 -b .fix-test_structmember-on-64bit-bigendian
 %patch128 -p1
 %patch129 -p1 -b .tsc-on-ppc
 %patch130 -p1
@@ -1669,8 +1670,10 @@ rm -fr %{buildroot}
 %doc Misc/README.valgrind Misc/valgrind-python.supp Misc/gdbinit
 %if %{main_python}
 %{_bindir}/python-config
+%{_bindir}/python2-config
 %else
 %exclude %{_bindir}/python-config
+%exclude %{_bindir}/python2-config
 %endif
 %{_bindir}/python%{pybasever}-config
 %{_libdir}/libpython%{pybasever}.so
