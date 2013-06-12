@@ -1,6 +1,6 @@
 Name: uwsgi
-Version: 1.9.6
-Release: 2%{?dist}
+Version: 1.9.12
+Release: 1%{?dist}
 Summary: Fast, self-healing, application container server
 Group: System Environment/Daemons   
 License: GPLv2
@@ -12,6 +12,8 @@ Patch1: carbon-listen-queue.patch
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: python2-devel, libxml2-devel, libuuid-devel
 BuildRequires: libyaml-devel
+# For PHP:
+BuildRequires: php54-embedded, php54-devel, libedit-devel
 
 %description
 uWSGI is a fast (pure C), self-healing, developer/sysadmin-friendly
@@ -31,7 +33,7 @@ core.
 %setup -q
 cat >>buildconf/default.ini <<-EOF
 	embedded_plugins = echo, ping, corerouter, http, python, gevent, carbon
-	plugins = admin, cache, logfile
+	plugins = admin, cache, logfile, php
 	_plugin_dir = %{_libdir}/%{name}
 EOF
 %patch0 -p1
