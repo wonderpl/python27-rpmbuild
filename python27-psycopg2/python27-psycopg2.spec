@@ -1,5 +1,5 @@
 Name: python27-psycopg2
-Version: 2.4.6
+Version: 2.5.1
 Release: 1%{?dist}
 Summary: Python-PostgreSQL Database Adapter
 Group: Development/Libraries
@@ -40,5 +40,8 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Aug 14 2013 Paul Egan <paulegan@rockpack.com> - 2.5.1-1
+- Bumped to latest
+
 * Mon Jan 14 2013 Paul Egan <paulegan@rockpack.com> - 2.4.6-1
 - Initial release
