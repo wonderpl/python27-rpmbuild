@@ -1,0 +1,11 @@
+--- gviz_data_table/column.py	2013-03-18 09:44:19.000000000 +0000
++++ gviz_data_table/column.py	2013-08-22 18:23:24.523366793 +0100
+@@ -8,7 +8,7 @@
+ 
+ valid_types = {str:'string', unicode:'string', int:'number', float:'number',
+                bool:'boolean', datetime.date:'date', datetime.datetime:'datetime',
+-               datetime.time:'timeofday'}
++               datetime.time:'timeofday', long:'number'}
+ 
+ 
+ class Column(object):
