@@ -1,5 +1,5 @@
 Name: python27-pyes
-Version: 0.19.1
+Version: 0.20.1
 Release: 1
 Summary: Python Elastic Search driver
 Group: Development/Libraries
@@ -34,5 +34,8 @@ rm -rf %{buildroot}
 %{python_sitelib}/pyes*
 
 %changelog
+* Thu Sep 12 2013 Paul Egan <paulegan@rockpack.com> - 0.20.1-1
+- Bumped to latest
+
 * Tue Apr 23 2013 Paul Egan <paulegan@rockpack.com> - 0.19.1-1
 - Initial release
