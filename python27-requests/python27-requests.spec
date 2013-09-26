@@ -1,5 +1,5 @@
 Name: python27-requests
-Version: 1.1.0
+Version: 1.2.3
 Release: 1
 Summary: Python HTTP for Humans
 Group: Development/Libraries
@@ -42,5 +42,8 @@ rm -rf %{buildroot}
 %{python_sitelib}/requests*
 
 %changelog
+* Thu Aug 29 2013 Paul Egan <paulegan@rockpack.com> - 1.2.3-1
+- Bumped to latest
+
 * Mon Jan 14 2013 Paul Egan <paulegan@rockpack.com> - 1.1.0-1
 - Initial release
