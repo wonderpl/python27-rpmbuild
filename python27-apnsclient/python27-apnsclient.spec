@@ -1,5 +1,5 @@
 Name: python27-apnsclient
-Version: 0.1.6
+Version: 0.1.8
 Release: 1
 Summary: Python client for Apple Push Notification service (APNs)
 Group: Development/Libraries
@@ -38,5 +38,8 @@ rm -rf %{buildroot}
 %{python_sitelib}/*.egg-info
 
 %changelog
+* Fri Oct 11 2013 Paul Egan <paulegan@rockpack.com> - 0.1.8-1
+- Bumped to fix unicode payload size issue
+
 * Wed Jul 31 2013 Paul Egan <paulegan@rockpack.com> - 0.1.6-1
 - Initial release
