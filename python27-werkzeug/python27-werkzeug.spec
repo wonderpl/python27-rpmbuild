@@ -1,5 +1,5 @@
 Name: python27-werkzeug
-Version: 0.8.3
+Version: 0.9.4
 Release: 1
 Summary: The Swiss Army knife of Python web development 
 Group: Development/Libraries
@@ -47,5 +47,8 @@ bulletin boards, etc.).
 %{python_sitelib}/*
 
 %changelog
+* Thu Oct 24 2013 Paul Egan <paulegan@rockpack.com> - 0.9.4-1
+- Latest release
+
 * Fri Jan 11 2013 Paul Egan <paulegan@rockpack.com> - 0.8.3-1
 - Initial release
