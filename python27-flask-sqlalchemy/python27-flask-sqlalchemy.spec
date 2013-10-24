@@ -1,5 +1,5 @@
 Name: python27-flask-sqlalchemy
-Version: 0.16
+Version: 1.0
 Release: 1
 Summary: Adds SQLAlchemy support to your Flask application
 Group: Development/Libraries
@@ -37,5 +37,8 @@ rm -rf %{buildroot}
 %{python_sitelib}/*
 
 %changelog
+* Tue Oct 22 2013 Paul Egan <paulegan@rockpack.com> - 1.0-1
+- Latest release
+
 * Thu Jan 31 2013 Paul Egan <paulegan@rockpack.com> - 0.16-1
 - Initial release

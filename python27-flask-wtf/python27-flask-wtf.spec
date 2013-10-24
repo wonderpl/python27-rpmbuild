@@ -1,5 +1,5 @@
 Name: python27-flask-wtf
-Version: 0.8.2
+Version: 0.9.3
 Release: 1
 Summary: Simple integration of Flask and WTForms
 Group: Development/Libraries
@@ -31,9 +31,12 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%doc LICENSE README
+%doc LICENSE PKG-INFO docs/*.rst
 %{python_sitelib}/*
 
 %changelog
+* Tue Oct 22 2013 Paul Egan <paulegan@rockpack.com> - 0.9.3-1
+- Latest release
+
 * Fri Jan 11 2013 Paul Egan <paulegan@rockpack.com> - 0.8.2-1
 - Initial release

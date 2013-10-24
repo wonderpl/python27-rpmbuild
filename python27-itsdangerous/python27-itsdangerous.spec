@@ -1,5 +1,5 @@
 Name: python27-itsdangerous
-Version: 0.17
+Version: 0.23
 Release: 1
 Summary: Various helpers to pass trusted data to untrusted environments
 Group: Development/Libraries
@@ -36,5 +36,8 @@ rm -rf %{buildroot}
 %{python_sitelib}/itsdangerous*
 
 %changelog
+* Tue Oct 22 2013 Paul Egan <paulegan@rockpack.com> - 0.23-1
+- Latest release
+
 * Mon Apr 08 2013 Paul Egan <paulegan@rockpack.com> - 0.17-1
 - Initial release
