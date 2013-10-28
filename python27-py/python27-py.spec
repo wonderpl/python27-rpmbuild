@@ -1,11 +1,11 @@
 Name: python27-py
-Version: 1.4.12
-Release: 1
+Version: 1.4.17
+Release: 2
 Summary: library with cross-python path, ini-parsing, io, code, log facilities
 Group: Development/Libraries
 License: MIT
 URL: http://pylib.readthedocs.org/
-Source0: http://pypi.python.org/packages/source/p/py/py-%{version}.zip
+Source0: http://pypi.python.org/packages/source/p/py/py-%{version}.tar.gz
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
@@ -43,5 +43,8 @@ rm -rf %{buildroot}
 %{python_sitelib}/py*
 
 %changelog
+* Mon Oct 28 2013 Allan Brisbane <allan@rockpack.com> - 1.4.17-1
+- Upgrade
+
 * Thu Jan 24 2013 Paul Egan <paulegan@rockpack.com> - 1.4.12-1
 - Initial release

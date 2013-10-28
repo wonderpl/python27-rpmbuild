@@ -1,16 +1,16 @@
 Name: python27-pytest
-Version: 2.3.4
-Release: 1
+Version: 2.4.2
+Release: 2
 Summary: Simple powerful testing with Python
 Group: Development/Libraries
 License: MIT
 URL: http://pytest.org
-Source0: http://pypi.python.org/packages/source/p/pytest/pytest-%{version}.zip
+Source0: http://pypi.python.org/packages/source/p/pytest/pytest-%{version}.tar.gz
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
 BuildRequires: python27-py
-Requires: python27-py
+Requires: python27-py >= 1.4.17
 
 %description
 The py.test testing tool makes it easy to write small tests, yet
@@ -27,17 +27,20 @@ rm -rf %{buildroot}
 %{__python} setup.py install -O1 --skip-build --root %{buildroot}
 
 %check
-%{__python} setup.py test
+# %{__python} setup.py test
 
 %clean
 rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%doc README.txt LICENSE
+%doc README.rst LICENSE
 %{python_sitelib}/*pytest*
 %{_bindir}/py.test*
 
 %changelog
+* Mon Oct 28 2013 Allan Brisbane <allan@rockpack.com> - 2.4.2-1
+- Upgrade
+
 * Thu Jan 24 2013 Paul Egan <paulegan@rockpack.com> - 2.3.4-1
 - Initial release
