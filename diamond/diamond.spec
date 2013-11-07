@@ -1,6 +1,6 @@
 Name: diamond
 Version: 3.3.286
-Release: 5
+Release: 6
 Summary: Smart data producer for graphite graphing package
 Group: Development/Libraries
 License: MIT License
@@ -11,6 +11,7 @@ Source2: collector_defaults
 Patch1: postgres-collector.patch
 Patch2: postgres-collector-replication.patch
 Patch3: elasticsearch-collector.patch
+Patch4: myrrix-collector.patch
 
 BuildArch: noarch
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
@@ -28,6 +29,7 @@ collectors for gathering metrics from almost any source.
 %patch1 -p0
 %patch2 -p0
 %patch3 -p0
+%patch4 -p0
 
 # Force Amazon Linux to be recognised like CentOS
 sed -e "s/'centos', /'', 'fedora', &/" -i setup.py
@@ -71,5 +73,8 @@ fi
 %{_localstatedir}/log/diamond
 
 %changelog
+* Thu Nov  7 2013 Paul Egan <paulegan@rockpack.com> - 3.3.286-6
+- Added myrrix collector
+
 * Tue Apr 09 2013 Paul Egan <paulegan@rockpack.com> - 3.3.286-1
 - Initial release
