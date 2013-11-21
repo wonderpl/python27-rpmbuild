@@ -1,6 +1,6 @@
 Name: python27-flask
 Version: 0.10.1
-Release: 1
+Release: 2
 Summary: A micro-framework for Python based on Werkzeug, Jinja 2 and good intentions
 Group: Development/Libraries
 License: BSD
@@ -10,7 +10,7 @@ Source0: http://pypi.python.org/packages/source/F/Flask/Flask-%{version}.tar.gz
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
 BuildRequires: python27-setuptools python27-werkzeug
-Requires: python27-werkzeug python27-jinja2
+Requires: python27-werkzeug python27-jinja2 python27-itsdangerous
 
 %description
 Flask is called a “micro-framework” because the idea to keep the core
