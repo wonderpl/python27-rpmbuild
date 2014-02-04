@@ -1,5 +1,5 @@
 Name: python27-jinja2
-Version: 2.6
+Version: 2.7.2
 Release: 1%{?dist}
 Summary: General purpose template engine
 Group: Development/Libraries
@@ -32,7 +32,6 @@ environments.
 %install
 rm -rf %{buildroot}
 %{__python} setup.py install -O1 --skip-build --root %{buildroot}
-rm %{buildroot}/%{python_sitelib}/jinja2/*.c
 
 %clean
 rm -rf %{buildroot}
@@ -43,5 +42,8 @@ rm -rf %{buildroot}
 %{python_sitelib}/*
 
 %changelog
+* Tue Feb  4 2014 Paul Egan <paulegan@rockpack.com> - 2.7.2-1
+- Updated to fix filesizeformat bug
+
 * Fri Jan 11 2013 Paul Egan <paulegan@rockpack.com> - 2.6-1
 - Initial release
