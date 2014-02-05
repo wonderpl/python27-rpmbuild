@@ -1,11 +1,12 @@
 Name: python27-pyes
 Version: 0.20.1
-Release: 1
+Release: 2
 Summary: Python Elastic Search driver
 Group: Development/Libraries
 License: BSD
 URL: http://github.com/aparo/pyes/
 Source0: http://pypi.python.org/packages/source/p/pyes/pyes-%{version}.tar.gz
+Patch0: suggest_from_object.patch
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
@@ -17,6 +18,7 @@ pyes is a connector to use elasticsearch from python.
 
 %prep
 %setup -q -n pyes-%{version}
+%patch0 -p1
 
 %build
 %{__python} setup.py build

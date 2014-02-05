@@ -1,0 +1,11 @@
+--- ./pyes/es.py	2013-08-08 21:47:42.000000000 +0000
++++ ./pyes/es.py	2014-01-15 17:14:54.820946251 +0000
+@@ -1374,7 +1374,7 @@
+         return self._send_request('GET', "_search/scroll", scroll_id, {"scroll": scroll})
+ 
+     def suggest_from_object(self, suggest, indices=None, preference=None, routing=None, raw=False, **kwargs):
+-        indices = self.validate_indices(indices)
++        indices = self._validate_indices(indices)
+ 
+         path = make_path(','.join(indices), "_suggest")
+         querystring_args = {}
