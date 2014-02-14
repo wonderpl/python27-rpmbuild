@@ -106,7 +106,7 @@
 Summary: An interpreted, interactive, object-oriented programming language
 Name: %{python}
 # Remember to also rebase python-docs when changing this:
-Version: 2.7.5
+Version: 2.7.6
 Release: 1%{?_buildid}%{?dist}
 License: Python
 Group: Development/Languages
@@ -165,7 +165,7 @@ BuildRequires: tk-devel
 # Source code and patches
 # =======================
 
-Source: http://www.python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
+Source: http://www.python.org/ftp/python/%{version}/Python-%{version}.tgz
 
 # Work around bug 562906 until it's fixed in rpm-build by providing a fixed
 # version of pythondeps.sh:
