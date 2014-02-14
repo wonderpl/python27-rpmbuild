@@ -1,6 +1,6 @@
 Name: uwsgi
-Version: 1.9.12
-Release: 2%{?dist}
+Version: 2.0.1
+Release: 1%{?dist}
 Summary: Fast, self-healing, application container server
 Group: System Environment/Daemons   
 License: GPLv2
@@ -34,7 +34,7 @@ core.
 %setup -q
 cat >>buildconf/default.ini <<-EOF
 	embedded_plugins = echo, ping, corerouter, http, python, gevent, carbon
-	plugins = admin, cache, logfile, php
+	plugins = cache, logfile, php
 	plugin_dir = %{_libdir}/%{name}
 EOF
 %patch0 -p1

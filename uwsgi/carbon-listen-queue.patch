@@ -1,13 +1,13 @@
---- plugins/carbon/carbon.c	2013-04-25 18:25:38.615186549 +0100
-+++ plugins/carbon/carbon.c	2013-04-25 18:25:41.148167836 +0100
-@@ -381,6 +381,12 @@
- 		wok = carbon_write(fd, "%s%s.%s.harakiri %llu %llu\n", u_carbon.root_node, u_carbon.hostname, u_carbon.id, (unsigned long long) total_harakiri, (unsigned long long) now);
- 		if (!wok) goto clear;
+--- plugins/carbon/carbon.c	2014-02-09 06:34:51.000000000 +0000
++++ plugins/carbon/carbon.c	2014-02-14 23:06:00.000000000 +0000
+@@ -385,6 +385,12 @@
+ 			}
+ 		}
  
-+		wok = carbon_write(fd, "%s%s.%s.listen_queue %llu %llu\n", u_carbon.root_node, u_carbon.hostname, u_carbon.id, (unsigned long long) uwsgi.shared->options[UWSGI_OPTION_BACKLOG_STATUS], (unsigned long long) now);
++		wok = carbon_write(fd, "%s%s.%s.listen_queue %llu %llu\n", u_carbon.root_node, u_carbon.hostname, u_carbon.id, (unsigned long long) uwsgi.shared->backlog, (unsigned long long) now);
 +		if (!wok) goto clear;
 +
-+		wok = carbon_write(fd, "%s%s.%s.listen_queue_errors %llu %llu\n", u_carbon.root_node, u_carbon.hostname, u_carbon.id, (unsigned long long) uwsgi.shared->options[UWSGI_OPTION_BACKLOG_ERRORS], (unsigned long long) now);
++		wok = carbon_write(fd, "%s%s.%s.listen_queue_errors %llu %llu\n", u_carbon.root_node, u_carbon.hostname, u_carbon.id, (unsigned long long) uwsgi.shared->backlog_errors, (unsigned long long) now);
 +		if (!wok) goto clear;
 +
  		usl->healthy = 1;
