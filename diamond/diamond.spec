@@ -1,6 +1,6 @@
 Name: diamond
-Version: 3.3.286
-Release: 6
+Version: 3.4.188
+Release: 1
 Summary: Smart data producer for graphite graphing package
 Group: Development/Libraries
 License: MIT License
@@ -8,10 +8,9 @@ URL: https://github.com/BrightcoveOS/Diamond
 Source0: http://pypi.python.org/packages/source/d/diamond/diamond-%{version}.tar.gz
 Source1: diamond.conf
 Source2: collector_defaults
-Patch1: postgres-collector.patch
-Patch2: postgres-collector-replication.patch
-Patch3: elasticsearch-collector.patch
-Patch4: myrrix-collector.patch
+Patch1: postgres-collector-replication.patch
+Patch2: myrrix-collector.patch
+Patch3: handler-error.patch
 
 BuildArch: noarch
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
@@ -28,8 +27,7 @@ collectors for gathering metrics from almost any source.
 %setup -q -n diamond-%{version}
 %patch1 -p0
 %patch2 -p0
-%patch3 -p0
-%patch4 -p0
+%patch3 -p1
 
 # Force Amazon Linux to be recognised like CentOS
 sed -e "s/'centos', /'', 'fedora', &/" -i setup.py

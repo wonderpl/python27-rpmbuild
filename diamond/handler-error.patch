@@ -1,0 +1,15 @@
+https://github.com/BrightcoveOS/Diamond/pull/519
+
+diff --git a/src/diamond/handler/Handler.py b/src/diamond/handler/Handler.py
+index caf67af..96cb89d 100644
+--- a/src/diamond/handler/Handler.py
++++ b/src/diamond/handler/Handler.py
+@@ -28,6 +28,8 @@ def __init__(self, config=None):
+         # Load in user
+         self.config.merge(config)
+ 
++        # error logging throttling
++        self.server_error_interval = float(self.config['server_error_interval'])
+         self._errors = {}
+ 
+         # Initialize Lock
