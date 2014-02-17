@@ -1,5 +1,5 @@
 Name: python27-virtualenv
-Version: 1.8.4
+Version: 1.11.2
 Release: 1
 Summary: Tool to create isolated Python environments
 Group: Development/Languages
@@ -32,7 +32,7 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%doc docs/*txt PKG-INFO AUTHORS.txt LICENSE.txt
+%doc docs/*.rst README.rst PKG-INFO AUTHORS.txt LICENSE.txt
 %{python_sitelib}/*
 %{_bindir}/*
 

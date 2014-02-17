@@ -1,12 +1,11 @@
 Name: python27-fixture
-Version: 1.4
-Release: 2
+Version: 1.5
+Release: 1
 Summary: fixture is a python module for loading and referencing test data
 Group: Development/Libraries
 License: LGPL
 URL: http://farmdev.com/projects/fixture/
 Source0: http://pypi.python.org/packages/source/f/fixture/fixture-%{version}.tar.gz
-Patch1: expunge_all.patch
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
@@ -19,7 +18,6 @@ work with temporary file systems.
 
 %prep
 %setup -q -n fixture-%{version}
-%patch1 -p1
 
 %build
 %{__python} setup.py build
@@ -38,7 +36,10 @@ rm -rf %{buildroot}
 %{_bindir}/*
 
 %changelog
-* Mon Feb 25 2013 Paul Egan <paulegan@rockpack.com> - 1.4-0
+* Thu Feb 13 2014 Paul Egan <paulegan@rockpack.com> - 1.5-1
+- Bumped
+
+* Mon Feb 25 2013 Paul Egan <paulegan@rockpack.com> - 1.4-2
 - Added expunge_all patch
 
 * Thu Feb 14 2013 Paul Egan <paulegan@rockpack.com> - 1.4-1

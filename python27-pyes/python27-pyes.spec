@@ -1,6 +1,6 @@
 Name: python27-pyes
 Version: 0.20.1
-Release: 2
+Release: 3
 Summary: Python Elastic Search driver
 Group: Development/Libraries
 License: BSD
@@ -18,6 +18,7 @@ pyes is a connector to use elasticsearch from python.
 
 %prep
 %setup -q -n pyes-%{version}
+sed -e '/urllib3/s/==/>=/' -i setup.py
 %patch0 -p1
 
 %build

@@ -1,5 +1,5 @@
 Name: python27-eventlet
-Version: 0.12.1
+Version: 0.14.0
 Release: 1%{?dist}
 Summary: Highly concurrent networking library
 Group: Development/Libraries
@@ -19,7 +19,7 @@ It uses epoll or libevent for highly scalable non-blocking I/O.  Coroutines ensu
 n easily use Eventlet from the Python interpreter, or as a small part of a larger application.
 
 %prep
-%setup -q -n gevent-%{version}
+%setup -q -n eventlet-%{version}
 
 %build
 CFLAGS="$RPM_OPT_FLAGS" %{__python} setup.py build
@@ -28,16 +28,13 @@ CFLAGS="$RPM_OPT_FLAGS" %{__python} setup.py build
 rm -rf %{buildroot}
 %{__python} setup.py install -O1 --skip-build --root %{buildroot}
 
-%check
-%{__python} setup.py test
-
 %clean
 rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
 %doc README.rst LICENSE
-%{python_sitearch}/eventlet*
+%{python_sitelib}/eventlet*
 
 
 %changelog

@@ -1,5 +1,5 @@
 Name: python27-pytz
-Version: 2013b
+Version: 2013.9
 Release: 1
 Summary: World timezone definitions, modern and historical
 Group: Development/Libraries

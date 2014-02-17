@@ -1,11 +1,11 @@
 Name: python27-sqlalchemy
-Version: 0.8.2
+Version: 0.9.2
 Release: 1
 Summary: Modular and flexible ORM library for python
 Group: Development/Libraries
 License: MIT
 URL: http://www.sqlalchemy.org/
-Source0: http://downloads.sourceforge.net/sqlalchemy/SQLAlchemy-%{version}.tar.gz
+Source0: https://pypi.python.org/packages/source/S/SQLAlchemy/SQLAlchemy-%{version}.tar.gz
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: python27-setuptools
@@ -39,6 +39,9 @@ rm -rf %{buildroot}
 %{python_sitearch}/*
 
 %changelog
+* Thu Feb 13 2014 Paul Egan <paulegan@rockpack.com> - 0.9.2-1
+- Bumped
+
 * Wed Aug 14 2013 Paul Egan <paulegan@rockpack.com> - 0.8.2-1
 - Bumped to 0.8.2
 

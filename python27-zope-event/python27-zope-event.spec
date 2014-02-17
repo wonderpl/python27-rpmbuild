@@ -1,5 +1,5 @@
 Name: python27-zope-event
-Version: 3.5.1
+Version: 4.0.2
 Release: 1
 Summary: Zope Event Publication
 Group: Development/Languages

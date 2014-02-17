@@ -1,10 +1,10 @@
 Name: python27-flask-wtf
-Version: 0.9.3
+Version: 0.9.4
 Release: 1
 Summary: Simple integration of Flask and WTForms
 Group: Development/Libraries
 License: BSD
-URL: http://github.com/rduplain/flask-wtf
+URL: https://github.com/ajford/flask-wtf
 Source0: http://pypi.python.org/packages/source/F/Flask-WTF/Flask-WTF-%{version}.tar.gz
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)

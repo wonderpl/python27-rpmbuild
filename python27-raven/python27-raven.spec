@@ -1,12 +1,11 @@
 Name: python27-raven
-Version: 3.1.17
-Release: 3
+Version: 4.0.4
+Release: 1
 Summary: Raven is a client for Sentry
 Group: Development/Libraries
 License: MIT
 URL: http://github.com/getsentry/raven-python
 Source0: http://pypi.python.org/packages/source/r/raven/raven-%{version}.tar.gz
-Patch1: flask_logging.patch
 
 BuildArch: noarch
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
@@ -20,7 +19,6 @@ includes drop-in support for any WSGI-compatible web application.
 
 %prep
 %setup -q -n raven-%{version}
-%patch1 -p0
 
 %build
 %{__python} setup.py build
@@ -39,7 +37,10 @@ rm -rf %{buildroot}
 %{_bindir}/raven
 
 %changelog
-* Sun Aug 17 2013 Paul Egan <paulegan@rockpack.com> - 3.1.17-3
+* Fri Feb 14 2014 Paul Egan <paulegan@rockpack.com> - 4.0.4-1
+- Bumped
+
+* Sat Aug 17 2013 Paul Egan <paulegan@rockpack.com> - 3.1.17-3
 - Added patch for logging level
 
 * Mon Mar 18 2013 Paul Egan <paulegan@rockpack.com> - 3.1.17-1

@@ -1,5 +1,5 @@
 Name: python27-webassets
-Version: 0.8
+Version: 0.9
 Release: 1
 Summary: Media asset management for Python, with glue code for various web frameworks
 Group: Development/Libraries

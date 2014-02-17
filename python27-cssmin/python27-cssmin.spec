@@ -1,5 +1,5 @@
 Name: python27-cssmin
-Version: 0.1.4
+Version: 0.2.0
 Release: 1
 Summary: A Python port of the YUI CSS compression algorithm
 Group: Development/Libraries
@@ -40,5 +40,8 @@ rm -rf %{buildroot}
 %{_bindir}/*
 
 %changelog
+* Thu Feb 13 2014 Paul Egan <paulegan@rockpack.com> - 0.2.0-1
+- Bumped
+
 * Thu Mar 21 2013 Paul Egan <paulegan@rockpack.com> - 0.1.4-1
 - Initial release

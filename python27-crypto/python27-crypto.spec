@@ -1,5 +1,5 @@
 Name: python27-crypto
-Version: 2.6
+Version: 2.6.1
 Release: 1%{?dist}
 Summary: Cryptography library for Python
 Group: Development/Libraries

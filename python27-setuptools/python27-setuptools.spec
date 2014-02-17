@@ -1,5 +1,5 @@
 Name: python27-setuptools
-Version: 0.6.34
+Version: 0.6.49
 Release: 1
 Summary: Easily download, build, install, upgrade, and uninstall Python packages
 Group: Applications/System
@@ -48,6 +48,9 @@ rm -rf %{buildroot}
 %{python_sitelib}/*
 
 %changelog
+* Thu Feb 13 2014 Paul Egan <paulegan@rockpack.com> - 0.6.49-1
+- Bumped
+
 * Wed Jan  2 2013 Paul Egan <paulegan@rockpack.com> - 0.6.34-1
 - Initial release
 

@@ -1,6 +1,6 @@
 Name: python27-py
-Version: 1.4.17
-Release: 2
+Version: 1.4.20
+Release: 1
 Summary: library with cross-python path, ini-parsing, io, code, log facilities
 Group: Development/Libraries
 License: MIT

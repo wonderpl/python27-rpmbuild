@@ -1,5 +1,5 @@
 Name: python27-gevent
-Version: 1.0rc2
+Version: 1.0
 Release: 1%{?dist}
 Summary: Coroutine-based concurrency library for Python
 Group: Development/Libraries
@@ -43,7 +43,6 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %doc README.rst LICENSE
 %{python_sitearch}/gevent*
-
 
 %changelog
 * Mon Apr 22 2013 Paul Egan <paulegan@rockpack.com> - 0.13.8-1

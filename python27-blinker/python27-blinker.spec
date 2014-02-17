@@ -1,5 +1,5 @@
 Name: python27-blinker
-Version: 1.2
+Version: 1.3
 Release: 1
 Summary: Fast, simple object-to-object and broadcast signaling
 Group: Development/Libraries
@@ -12,9 +12,6 @@ BuildArch: noarch
 BuildRequires: python27-setuptools
 
 %description
-Blinker
-=======
-
 Blinker provides a fast dispatching system that allows any
 number of interested parties to subscribe to events, or "signals".
 Signal receivers can subscribe to specific senders or receive signals

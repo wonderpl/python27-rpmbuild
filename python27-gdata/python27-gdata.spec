@@ -1,5 +1,5 @@
 Name: python27-gdata
-Version: 2.0.17
+Version: 2.0.18
 Release: 1
 Summary: A Python module for accessing online Google services
 Group: Development/Languages

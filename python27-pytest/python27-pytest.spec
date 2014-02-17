@@ -1,5 +1,5 @@
 Name: python27-pytest
-Version: 2.4.2
+Version: 2.5.2
 Release: 2
 Summary: Simple powerful testing with Python
 Group: Development/Libraries
@@ -39,6 +39,9 @@ rm -rf %{buildroot}
 %{_bindir}/py.test*
 
 %changelog
+* Thu Feb 13 2014 Paul Egan <paulegan@rockpack.com> - 2.5.2-1
+- Bumped
+
 * Mon Oct 28 2013 Allan Brisbane <allan@rockpack.com> - 2.4.2-1
 - Upgrade
 

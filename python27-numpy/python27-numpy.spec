@@ -1,5 +1,5 @@
 Name: python27-numpy
-Version: 1.7.0
+Version: 1.8.0
 Release: 1%{?dist}
 Summary: NumPy: array processing for numbers, strings, records, and objects.
 License: BSD
@@ -46,5 +46,8 @@ rm -rf %{buildroot}
 %{_includedir}/*
 
 %changelog
+* Fri Feb 14 2014 Paul Egan <paulegan@rockpack.com> - 1.8.0-1
+- Bumped
+
 * Fri Apr  5 2013 Paul Egan <paulegan@rockpack.com> - 1.7.0-1
 - Initial release

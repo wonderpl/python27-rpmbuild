@@ -1,11 +1,11 @@
 Name: python27-zope-interface
-Version: 4.0.4
+Version: 4.1.0
 Release: 1%{?dist}
 Summary: Interfaces for Python
 Group: Development/Libraries
 License: ZPLv2.1
 URL: http://pypi.python.org/pypi/zope.interface
-Source0: http://pypi.python.org/packages/source/z/zope.interface/zope.interface-%{version}.zip
+Source0: http://pypi.python.org/packages/source/z/zope.interface/zope.interface-%{version}.tar.gz
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: python27-setuptools python27-zope-event

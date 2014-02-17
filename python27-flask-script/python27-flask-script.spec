@@ -1,5 +1,5 @@
 Name: python27-flask-script
-Version: 0.5.3
+Version: 0.6.6
 Release: 1
 Summary: Scripting support for Flask
 Group: Development/Libraries
@@ -37,5 +37,8 @@ rm -rf %{buildroot}
 %{python_sitelib}/*
 
 %changelog
+* Thu Feb 13 2014 Paul Egan <paulegan@rockpack.com> - 0.6.6-1
+- Bumped
+
 * Tue Mar 19 2013 Paul Egan <paulegan@rockpack.com> - 0.5.3-1
 - Initial release

@@ -1,11 +1,11 @@
 Name: python27-statsd
-Version: 0.1.7
+Version: 0.1.10
 Release: 1
 Summary: Python implementation of the Statsd client/server
 Group: Development/Libraries
 License: BSD
 URL: https://github.com/sivy/py-statsd
-Source0: https://github.com/sivy/py-statsd/archive/master.tar.gz
+Source0: https://github.com/sivy/pystatsd/archive/%{version}.tar.gz
 Patch1: defaults.patch
 Patch2: daemon.patch
 
@@ -19,7 +19,7 @@ server, a front end/proxy for the Graphite stats collection and graphing
 server.
 
 %prep
-%setup -q -n py-statsd-master
+%setup -q -n pystatsd-%{version}
 %patch1 -p0
 %patch2 -p0
 

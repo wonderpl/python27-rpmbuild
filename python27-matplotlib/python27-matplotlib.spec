@@ -1,5 +1,5 @@
 Name: python27-matplotlib
-Version: 1.2.1
+Version: 1.3.1
 Release: 1%{?dist}
 Summary: Python plotting package
 Group: Development/Libraries
@@ -38,7 +38,7 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%doc README.txt examples/ doc/
+%doc README.rst examples/ doc/
 %{python_sitearch}/*
 
 %changelog

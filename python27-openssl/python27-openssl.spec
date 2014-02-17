@@ -1,5 +1,5 @@
 Name: python27-openssl
-Version: 0.13
+Version: 0.13.1
 Release: 1%{?dist}
 Summary: Python wrapper module around the OpenSSL library
 Group: Development/Libraries

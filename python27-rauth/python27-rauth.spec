@@ -1,5 +1,5 @@
 Name: python27-rauth
-Version: 0.4.17
+Version: 0.6.2
 Release: 1
 Summary: A Python library for OAuth 1.0/a, 2.0, and Ofly
 Group: Development/Libraries
@@ -26,15 +26,12 @@ and Ofly. It is built on top of the superb Python Requests.
 rm -rf %{buildroot}
 %{__python} setup.py install -O1 --skip-build --root %{buildroot}
 
-%check
-%{__python} setup.py test
-
 %clean
 rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%doc README.markdown LICENSE
+%doc README.md LICENSE
 %{python_sitelib}/rauth*
 
 %changelog
