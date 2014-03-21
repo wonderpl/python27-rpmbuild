@@ -1,0 +1,11 @@
+--- setup.py	2014-03-19 16:39:14.852586112 +0000
++++ setup.py	2014-03-19 16:39:30.429661971 +0000
+@@ -12,7 +12,7 @@
+     keywords = 'mailchimp email api',
+     url = 'https://bitbucket.org/mailchimp/mailchimp-api-python/',
+     py_modules = ['mailchimp'],
+-    install_requires = ['requests >= 0.13.2', 'docopt == 0.4.0'],
++    install_requires = ['requests >= 0.13.2', 'docopt >= 0.4.0'],
+     classifiers = [
+         'Development Status :: 4 - Beta',
+         'Environment :: Console',
