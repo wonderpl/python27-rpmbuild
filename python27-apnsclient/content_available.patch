@@ -1,0 +1,340 @@
+https://bitbucket.org/sardarnl/apns-client/issue/10/missing-priority-for-new-binary-payload
+
+diff -r 514c5f537669 apnsclient/apns.py
+--- a/apnsclient/apns.py	Sun Sep 29 12:09:06 2013 +0200
++++ b/apnsclient/apns.py	Tue May 06 19:35:51 2014 +0100
+@@ -712,29 +712,31 @@
+         'ensure_ascii': False,
+     }
+ 
+-    def __init__(self, tokens, alert=None, badge=None, sound=None, expiry=None, payload=None, **extra):
++    def __init__(self, tokens, alert=None, badge=None, sound=None, content_available=None, expiry=None, payload=None, priority=10, **extra):
+         """ The push notification to one or more device tokens.
+ 
+             Read more `about payload
+-            <http://developer.apple.com/library/mac/#documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/ApplePushService/ApplePushService.html#//apple_ref/doc/uid/TP40008194-CH100-SW9>`_.
++            <https://developer.apple.com/library/mac/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/Chapters/ApplePushService.html#//apple_ref/doc/uid/TP40008194-CH100-SW1>`_.
+ 
+             :Arguments:
+                 - `tokens` (str or list): set of device tokens where to message will be sent.
+                 - `alert` (str or dict): the message; read APNs manual for recognized dict keys (localized messages).
+                 - `badge` (int or str): badge number over the application icon or "
+                 - `sound` (str): sound file to play on arrival.
++                - `content_available` (int): set to 1 to indicate new content is available.
+                 - `expiry` (int or datetime or timedelta): timestamp when message will expire
+                 - `payload` (dict): JSON-compatible dictionary with the
+                                     complete message payload. If supplied, it
+                                     is given instead of all the other, more
+                                     specific parameters.
++                - `priority` (int): priority of th emessage, 10 (default) or 5.
+                 - `extra` (kwargs): extra payload key-value pairs.
+         """
+         if (payload is not None and (
+-                alert is not None or badge is not None or sound is not None or extra)):
++                alert is not None or badge is not None or sound is not None or content_available is not None or extra)):
+             # Raise an error if both `payload` and the more specific
+             # parameters are supplied.
+-            raise ValueError("Payload specified together with alert/badge/sound/extra.")
++            raise ValueError("Payload specified together with alert/badge/sound/content_available/extra.")
+ 
+         if isinstance(tokens, basestring):
+             tokens = [tokens]
+@@ -743,6 +745,8 @@
+         self.alert = alert
+         self.badge = badge
+         self.sound = sound
++        self.content_available = content_available
++        self.priority = priority
+         self.extra = extra
+         self._payload = payload
+ 
+@@ -790,9 +794,10 @@
+                 'payload': self._payload,
+                 'tokens': self.tokens,
+                 'expiry': self.expiry,
++                'priority': self.priority,
+             }
+ 
+-        ret = dict((key, getattr(self, key)) for key in ('tokens', 'alert', 'badge', 'sound', 'expiry'))
++        ret = dict((key, getattr(self, key)) for key in ('tokens', 'alert', 'badge', 'sound', 'content_available', 'expiry', 'priority'))
+         if self.extra:
+             ret.update(self.extra)
+ 
+@@ -803,18 +808,20 @@
+         self._tokens = state['tokens']
+         self.extra = {}
+         self.expiry = state['expiry']
++        self.priority = state['priority']
+ 
+         if 'payload' in state:
+             self._payload = state['payload']
+             self.alert = None
+             self.badge = None
+             self.sound = None
++            self.content_available = None
+         else:
+             self._payload = None
+             for key, val in state.iteritems():
+                 if key in ('tokens', 'expiry'): # already set
+                     pass
+-                elif key in ('alert', 'badge', 'sound'):
++                elif key in ('alert', 'badge', 'sound', 'content_available', 'priority'):
+                     setattr(self, key, state[key])
+                 else:
+                     self.extra[key] = val
+@@ -830,10 +837,12 @@
+         if self._payload is not None:
+             return self._payload
+         
+-        aps = {
+-            # XXX: we do not check alert, which could be string or dict with extra options
+-            'alert': self.alert
+-        }
++        # in v.2 protocol no keys are required, but usually you specify
++        # alert or content-available.
++        aps = {}
++
++        if self.alert:
++            aps['alert'] = self.alert
+ 
+         if self.badge is not None:
+             aps['badge'] = self.badge
+@@ -841,6 +850,9 @@
+         if self.sound is not None:
+             aps['sound'] = str(self.sound)
+ 
++        if self.content_available is not None:
++            aps['content-available'] = self.content_available
++
+         ret = {
+             'aps': aps,
+         }
+@@ -861,7 +873,7 @@
+     def batch(self, packet_size):
+         """ Returns binary serializer. """
+         payload = self.get_json_payload()
+-        return Batch(self._tokens, payload, self.expiry, packet_size)
++        return Batch(self._tokens, payload, self.expiry, self.priority, packet_size)
+ 
+     def retry(self, failed_index, include_failed):
+         """ Create new retry message with tokens from failed index. """
+@@ -873,24 +885,28 @@
+             # nothing to retry
+             return None
+ 
+-        return Message(failed, self.alert, badge=self.badge, sound=self.sound, expiry=self.expiry, **self.extra)
++        return Message(failed, self.alert, badge=self.badge, sound=self.sound,
++                    content_available=self.content_available, expiry=self.expiry,
++                    priority=self.priority, **self.extra)
+ 
+ 
+ class Batch(object):
+     """ Binary stream serializer. """
+ 
+-    def __init__(self, tokens, payload, expiry, packet_size):
++    def __init__(self, tokens, payload, expiry, priority, packet_size):
+         """ New serializer.
+ 
+             :Arguments:
+                 - `tokens` (list): list of target target device tokens.
+                 - `payload` (str): JSON payload.
+                 - `expiry` (int): expiry timestamp.
++                - `priority` (int): message priority.
+                 - `packet_size` (int): minimum chunk size in bytes.
+         """
+         self.tokens = tokens
+         self.payload = payload
+         self.expiry = expiry
++        self.priority = priority
+         self.packet_size = packet_size
+         
+     def __iter__(self):
+@@ -902,12 +918,19 @@
+         # for all registration ids
+         for idx, token in enumerate(self.tokens):
+             tok = token.decode("hex")
+-            # |COMMAND|ID|EXPIRY|TOKENLEN|TOKEN|PAYLOADLEN|PAYLOAD|
+-            fmt = ">BIIH%ssH%ss" % (len(tok), len(self.payload))
+-            message = pack(fmt, 1, idx, self.expiry, len(tok), tok, len(self.payload), self.payload)
++            # |COMMAND|FRAME-LEN|{token}|{payload}|{id:4}|{expiry:4}|{priority:1}
++            frame_len = 3*5 + len(tok) + len(self.payload) + 4 + 4 + 1 # 5 items, each 3 bytes prefix, then each item length
++            fmt = ">BIBH%ssBH%ssBHIBHIBHB" % (len(tok), len(self.payload))
++            message = pack(fmt, 2, frame_len,
++                    1, len(tok), tok,
++                    2, len(self.payload), self.payload,
++                    3, 4, idx,
++                    4, 4, self.expiry,
++                    5, 1, self.priority)
++
+             messages.append(message)
+             buf += len(message)
+-            if buf > self.packet_size:
++            if buf >= self.packet_size:
+                 chunk = "".join(messages)
+                 buf = 0
+                 prev_sent = sent
+@@ -932,6 +955,7 @@
+         6: ('Invalid topic size', False, True), # can not happen, we do not send topic, it is part of certificate. bail out.
+         7: ('Invalid payload size', False, True), # our payload is probably too big. bail out.
+         8: ('Invalid token', True, False), # our device token is broken, skipt it and retry
++        10: ('Shutdown', True, None), # server went into maintenance mode. reported token is the last success, skip it and retry.
+         None: ('Unknown', True, True), # unknown error, for sure we try again, but user should limit number of retries
+     }
+ 
+@@ -953,7 +977,7 @@
+                 # may be None if failed on last token, which is skipped
+                 self._retry_message = message.retry(failed_index, include_failed)
+ 
+-            if not include_failed: # report broken token, it was skipped
++            if include_failed is False: # report broken token, it was skipped
+                 self._failed = {
+                     message.tokens[failed_index]: (reason, expl)
+                 }
+diff -r 514c5f537669 apnsclient/test.py
+--- a/apnsclient/test.py	Sun Sep 29 12:09:06 2013 +0200
++++ b/apnsclient/test.py	Tue May 06 19:35:51 2014 +0100
+@@ -48,7 +48,7 @@
+         # fail on invalid token on second message
+         myssl.Connection().recv.return_value = struct.pack(">BBI", 8, 8, 1)
+ 
+-        msg = Message(["0123456789ABCDEF", "FEDCBA9876543210"], alert="my alert", badge=10, my_extra=15)
++        msg = Message(["0123456789ABCDEF", "FEDCBA9876543210"], alert="my alert", badge=10, content_available=1, my_extra=15)
+         self.push_con.close()
+         srv = APNs(self.push_con)
+         res = srv.send(msg)
+@@ -79,9 +79,9 @@
+     """ Test Message API. """
+ 
+     def setUp(self):
+-        self.uni = Message("0123456789ABCDEF", alert="alert", badge=10)
+-        self.multi = Message(["0123456789ABCDEF", "FEDCBA9876543210"], alert="my alerrt", sound="cool.mp3", my_extra=15)
+-        self.payload = Message(["0123456789ABCDEF", "FEDCBA9876543210"], payload=self.uni.payload)
++        self.uni = Message("0123456789ABCDEF", alert="alert", badge=10, content_available=1)
++        self.multi = Message(["0123456789ABCDEF", "FEDCBA9876543210"], alert="my alerrt", sound="cool.mp3", content_available=1, my_extra=15)
++        self.payload = Message(["0123456789ABCDEF", "FEDCBA9876543210"], payload=self.uni.payload, priority=5)
+ 
+     def test_serialization(self):
+         # standard pickle
+@@ -93,7 +93,7 @@
+         cmulti = pickle.loads(smulti)
+         cpayload = pickle.loads(spayload)
+ 
+-        for key in ('tokens', 'alert', 'badge', 'sound', 'expiry', 'extra', '_payload'):
++        for key in ('tokens', 'alert', 'badge', 'sound', 'content_available', 'expiry', 'extra', 'priority', '_payload'):
+             self.assertEqual(getattr(self.uni, key), getattr(cuni, key))
+             self.assertEqual(getattr(self.multi, key), getattr(cmulti, key))
+             self.assertEqual(getattr(self.payload, key), getattr(cpayload, key))
+@@ -115,7 +115,7 @@
+         cmulti = Message(**smulti)
+         cpayload = Message(**spayload)
+ 
+-        for key in ('tokens', 'alert', 'badge', 'sound', 'expiry', 'extra', '_payload'):
++        for key in ('tokens', 'alert', 'badge', 'sound', 'content_available', 'expiry', 'extra', 'priority', '_payload'):
+             self.assertEqual(getattr(self.uni, key), getattr(cuni, key))
+             self.assertEqual(getattr(self.multi, key), getattr(cmulti, key))
+             self.assertEqual(getattr(self.payload, key), getattr(cpayload, key))
+@@ -138,27 +138,46 @@
+         sent, data = batch
+         # we send batches of 1 token size
+         self.assertEqual(sent, itr)
+-        # |COMMAND|ID|EXPIRY|TOKENLEN|TOKEN|PAYLOADLEN|PAYLOAD|
+-        command, ID, expiry, tokenlen = struct.unpack(">BIIH", data[0:11])
+-        token = data[11:(11 + tokenlen)].encode("hex")
+-        payloadlen = struct.unpack(">H", data[(11 + tokenlen):(11 + tokenlen + 2)])[0]
+-        payload = json.loads(data[(11 + tokenlen + 2): (11 + tokenlen + 2 + payloadlen)])
+-        # test packaging
+-        self.assertEqual(command, 1)
+-        self.assertEqual(ID, itr)
+-        # test message
+-        self.assertEqual(msg.tokens[itr].lower(), token.lower())
+-        self.assertEqual(msg.expiry, expiry)
+-        self.assertEqual(msg.alert, payload['aps']['alert'])
+-        self.assertEqual(msg.badge, payload['aps'].get('badge'))
+-        self.assertEqual(msg.sound, payload['aps'].get('sound'))
+-        payload.pop('aps')
+-        self.assertEqual(msg.extra, payload)
++        # |COMMAND|FRAME-LEN|{token}|{payload}|{id:4}|{expiry:4}|{priority:1}
++        command, frame_len = struct.unpack(">BI", data[0:5])
++        self.assertEqual(command, 2)
++        self.assertEqual(frame_len, len(data) - 5)
++        
++        off = 5
++        restored = {}
++        for itm in xrange(1, 6):
++            hdr, length = struct.unpack(">BH", data[off:(off+3)])
++            off += 3
++            value = data[off:(off+length)]
++            off += length
++            if hdr == 1:
++                restored['token'] = value.encode('hex')
++            elif hdr == 2:
++                restored['payload'] = json.loads(value)
++            elif hdr == 3:
++                restored['index'] = struct.unpack(">I", value)[0]
++            elif hdr == 4:
++                restored['expiry'] = struct.unpack(">I", value)[0]
++            elif hdr == 5:
++                restored['priority'] = struct.unpack(">B", value)[0]
++
++        for key in ('token', 'payload', 'index', 'expiry', 'priority'):
++            if key not in restored:
++                self.fail("Binary message is missing: %s" % key)
++
++        # check message
++        self.assertEqual(msg.tokens[itr].lower(), restored['token'].lower())
++        self.assertEqual(msg.payload['aps'], restored['payload']['aps'])
++        restored['payload'].pop('aps')
++        self.assertEqual(msg.extra, restored['payload'])
++        self.assertEqual(restored['index'], itr)
++        self.assertEqual(msg.expiry, restored['expiry'])
++        self.assertEqual(msg.priority, restored['priority'])
+ 
+     def test_retry(self):
+         # include failed
+         runi = self.uni.retry(0, True)
+-        for key in ('tokens', 'alert', 'badge', 'sound', 'expiry', 'extra'):
++        for key in ('tokens', 'alert', 'badge', 'sound', 'content_available', 'expiry', 'priority', 'extra'):
+             self.assertEqual(getattr(self.uni, key), getattr(runi, key))
+ 
+         # nothing to retry, we skip the token
+@@ -166,18 +185,18 @@
+ 
+         # include failed
+         rmulti = self.multi.retry(0, True)
+-        for key in ('tokens', 'alert', 'badge', 'sound', 'expiry', 'extra'):
++        for key in ('tokens', 'alert', 'badge', 'sound', 'content_available', 'expiry', 'priority', 'extra'):
+             self.assertEqual(getattr(self.multi, key), getattr(rmulti, key))
+ 
+         # skip failed
+         rmulti = self.multi.retry(0, False)
+         self.assertEqual(self.multi.tokens[1:], rmulti.tokens)
+-        for key in ('alert', 'badge', 'sound', 'expiry', 'extra'):
++        for key in ('alert', 'badge', 'sound', 'content_available', 'expiry', 'priority', 'extra'):
+             self.assertEqual(getattr(self.multi, key), getattr(rmulti, key))
+ 
+     def test_non_ascii(self):
+-        # meta-data size
+-        empty_msg_size = len(Message(tokens=[], alert="").get_json_payload())
++        # meta-data size. ensure 'alert' is included.
++        empty_msg_size = len(Message(tokens=[], alert="a").get_json_payload()) - 1
+ 
+         MAX_UTF8_SIZE = 3  # size of maximum utf8 encoded character in bytes
+         chinese_str = (
+@@ -206,13 +225,14 @@
+     def test_result(self):
+         for reason in Result.ERROR_CODES.keys():
+             res = Result(self.msg, (reason, 0))
+-            self.assertEqual(len(res.errors), int(reason in (1, 3, 4, 6, 7, None)))
++            self.assertEqual(len(res.errors), int(reason in (1, 3, 4, 6, 7, 10, None)))
+             self.assertEqual(len(res.failed), int(reason in (2, 5, 8)))
+-            self.assertEqual(reason in (1, 2, 5, 8, None), res.needs_retry())
++            self.assertEqual(reason in (1, 2, 5, 8, 10, None), res.needs_retry())
+ 
+             if res.needs_retry():
+                 ret = res.retry()
+-                self.assertEqual(len(ret.tokens), 2 - len(res.failed))
++                # skip failed or successful token by Shutdown
++                self.assertEqual(len(ret.tokens), 2 - len(res.failed) - int(reason == 10))
+ 
+ 
+ if __name__ == '__main__':

@@ -1,11 +1,12 @@
 Name: python27-apnsclient
 Version: 0.1.8
-Release: 1
+Release: 2
 Summary: Python client for Apple Push Notification service (APNs)
 Group: Development/Libraries
 License: ASL
 URL: https://bitbucket.org/sardarnl/apns-client
 Source0: https://pypi.python.org/packages/source/a/apns-client/apns-client-%{version}.tar.gz
+Patch0: content_available.patch
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
@@ -17,6 +18,7 @@ Python client for `Apple Push Notification service (APNs) .
 
 %prep
 %setup -q -n apns-client-%{version}
+%patch0 -p1
 
 %build
 %{__python} setup.py build
