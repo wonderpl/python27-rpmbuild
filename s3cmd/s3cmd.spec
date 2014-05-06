@@ -1,11 +1,11 @@
 Name: s3cmd
 Version: 1.5.0
-Release: 1
+Release: 2
 Summary: Command line tool for managing Amazon S3 and CloudFront services
 Group: Networking
 License: GPL
 Url: http://s3tools.org/s3cmd
-Source: https://github.com/s3tools/s3cmd/archive/v%{version}-alpha3.tar.gz
+Source: https://github.com/s3tools/s3cmd/archive/v%{version}-beta1.tar.gz
 
 BuildArch: noarch
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
@@ -19,7 +19,7 @@ GPG encryption, and more. Also supports management
 of Amazon's CloudFront content delivery network.
 
 %prep
-%setup -n %{name}-%{version}-alpha3
+%setup -n %{name}-%{version}-beta1
 
 %build
 export S3CMD_PACKAGING=1
