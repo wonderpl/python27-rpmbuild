@@ -1,5 +1,5 @@
 Name: python27-flask-cache
-Version: 0.12
+Version: 0.13.1
 Release: 1
 Summary: Adds cache support to your Flask application
 Group: Development/Libraries

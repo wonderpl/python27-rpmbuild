@@ -1,5 +1,5 @@
 Name: python27-flask-login
-Version: 0.2.9
+Version: 0.2.10
 Release: 1
 Summary: User session management for Flask
 Group: Development/Libraries

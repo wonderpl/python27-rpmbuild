@@ -1,5 +1,5 @@
 Name: python27-itsdangerous
-Version: 0.23
+Version: 0.24
 Release: 1
 Summary: Various helpers to pass trusted data to untrusted environments
 Group: Development/Libraries

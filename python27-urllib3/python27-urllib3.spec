@@ -1,5 +1,5 @@
 Name: python27-urllib3
-Version: 1.7.1
+Version: 1.8.2
 Release: 1
 Summary: HTTP library with thread-safe connection pooling, file post, and more
 Group: Development/Libraries
@@ -32,8 +32,10 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %doc README.rst LICENSE.txt
 %{python_sitelib}/urllib3*
-%{python_sitelib}/dummyserver
 
 %changelog
+* Tue May  6 2014 Paul Egan <paulegan@rockpack.com> - 1.8.2-1
+- Bumped
+
 * Tue Apr 23 2013 Paul Egan <paulegan@rockpack.com> - 1.5-1
 - Initial release

@@ -1,10 +1,10 @@
 Name: python27-flask-script
-Version: 0.6.6
+Version: 2.0.3
 Release: 1
 Summary: Scripting support for Flask
 Group: Development/Libraries
 License: BSD
-URL: http://github.com/techniq/flask-script
+URL: http://github.com/smurfix/flask-script
 Source0: http://pypi.python.org/packages/source/F/Flask-Script/Flask-Script-%{version}.tar.gz
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
@@ -37,6 +37,9 @@ rm -rf %{buildroot}
 %{python_sitelib}/*
 
 %changelog
+* Tue May  6 2014 Paul Egan <paulegan@rockpack.com> - 2.0.3-1
+- Switched to new version
+
 * Thu Feb 13 2014 Paul Egan <paulegan@rockpack.com> - 0.6.6-1
 - Bumped
 

@@ -1,5 +1,5 @@
 Name: python27-flask-wtf
-Version: 0.9.4
+Version: 0.9.5
 Release: 1
 Summary: Simple integration of Flask and WTForms
 Group: Development/Libraries

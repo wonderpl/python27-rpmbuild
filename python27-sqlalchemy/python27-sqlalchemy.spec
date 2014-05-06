@@ -1,5 +1,5 @@
 Name: python27-sqlalchemy
-Version: 0.9.2
+Version: 0.9.4
 Release: 1
 Summary: Modular and flexible ORM library for python
 Group: Development/Libraries

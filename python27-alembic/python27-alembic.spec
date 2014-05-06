@@ -1,5 +1,5 @@
 Name: python27-alembic
-Version: 0.6.3
+Version: 0.6.5
 Release: 1
 Summary: A database migration tool for SQLAlchemy
 Group: Development/Libraries

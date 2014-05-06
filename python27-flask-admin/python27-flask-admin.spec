@@ -1,5 +1,5 @@
 Name: python27-flask-admin
-Version: 1.0.7
+Version: 1.0.8
 Release: 1
 Summary: Simple and extensible admin interface framework for Flask
 Group: Development/Libraries
