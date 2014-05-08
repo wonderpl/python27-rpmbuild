@@ -1,11 +1,12 @@
 Name: python27-flask-admin
 Version: 1.0.8
-Release: 1
+Release: 2
 Summary: Simple and extensible admin interface framework for Flask
 Group: Development/Libraries
 License: BSD
 URL: https://github.com/mrjoes/flask-admin/
 Source0: http://pypi.python.org/packages/source/F/Flask-Admin/Flask-Admin-%{version}.tar.gz
+Patch1: inlinemodelconverter.patch
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
@@ -21,6 +22,7 @@ SQLAlchemy, MongoEngine and Peewee ORMs and simple file management interface.
 
 %prep
 %setup -q -n Flask-Admin-%{version}
+%patch1 -p1
 # Upgrade to bootstrap 2.3.2
 wget http://getbootstrap.com/2.3.2/assets/bootstrap.zip
 unzip -q -o -d flask_admin/static bootstrap.zip

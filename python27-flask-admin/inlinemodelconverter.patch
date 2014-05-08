@@ -1,0 +1,22 @@
+diff --git a/flask_admin/contrib/sqla/form.py b/flask_admin/contrib/sqla/form.py
+index e4e2620..3c5d1e9 100644
+--- a/flask_admin/contrib/sqla/form.py
++++ b/flask_admin/contrib/sqla/form.py
+@@ -550,7 +550,7 @@ class InlineModelConverter(InlineModelConverterBase):
+         reverse_prop = None
+ 
+         for prop in target_mapper.iterate_properties:
+-            if hasattr(prop, 'direction'):
++            if hasattr(prop, 'direction') and prop.direction.name == 'MANYTOONE':
+                 if issubclass(model, prop.mapper.class_):
+                     reverse_prop = prop
+                     break
+@@ -561,7 +561,7 @@ class InlineModelConverter(InlineModelConverterBase):
+         forward_prop = None
+ 
+         for prop in mapper.iterate_properties:
+-            if hasattr(prop, 'direction'):
++            if hasattr(prop, 'direction') and prop.direction.name == 'ONETOMANY':
+                 if prop.mapper.class_ == target_mapper.class_:
+                     forward_prop = prop
+                     break
