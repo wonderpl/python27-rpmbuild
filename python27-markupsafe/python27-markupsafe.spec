@@ -1,5 +1,5 @@
 Name: python27-markupsafe
-Version: 0.18
+Version: 0.23
 Release: 1%{?dist}
 Summary: Implements a XML/HTML/XHTML Markup safe string for Python
 Group: Development/Libraries

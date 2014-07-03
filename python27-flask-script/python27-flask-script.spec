@@ -1,5 +1,5 @@
 Name: python27-flask-script
-Version: 2.0.3
+Version: 2.0.5
 Release: 1
 Summary: Scripting support for Flask
 Group: Development/Libraries

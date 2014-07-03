@@ -1,5 +1,5 @@
 Name: python27-werkzeug
-Version: 0.9.4
+Version: 0.9.6
 Release: 1
 Summary: The Swiss Army knife of Python web development 
 Group: Development/Libraries

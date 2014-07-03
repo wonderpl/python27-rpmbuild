@@ -1,5 +1,5 @@
 Name: python27-wtforms
-Version: 1.0.5
+Version: 2.0.1
 Release: 1
 Summary: A flexible forms validation and rendering library for python web development
 Group: Development/Libraries
@@ -42,7 +42,7 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%doc README.txt LICENSE.txt
+%doc README.md LICENSE.txt
 %{python_sitelib}/*
 
 %changelog

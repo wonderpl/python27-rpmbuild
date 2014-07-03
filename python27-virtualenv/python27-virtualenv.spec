@@ -1,5 +1,5 @@
 Name: python27-virtualenv
-Version: 1.11.2
+Version: 1.11.6
 Release: 1
 Summary: Tool to create isolated Python environments
 Group: Development/Languages

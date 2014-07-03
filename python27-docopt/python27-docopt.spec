@@ -1,5 +1,5 @@
 Name: python27-docopt
-Version: 0.6.1
+Version: 0.6.2
 Release: 1
 Summary: Pythonic argument parser, that will make you smile
 Group: Development/Libraries

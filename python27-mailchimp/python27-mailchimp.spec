@@ -1,5 +1,5 @@
 Name: python27-mailchimp
-Version: 2.0.7
+Version: 2.0.8
 Release: 1
 Summary: A CLI client and Python API library for the MailChimp email platform
 Group: Development/Libraries

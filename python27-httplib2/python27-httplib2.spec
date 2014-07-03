@@ -1,11 +1,11 @@
 Name: python27-httplib2
-Version: 0.8
+Version: 0.9
 Release: 1
 Summary: A comprehensive HTTP client library
 Group: System Environment/Libraries
 License: MIT
-URL: http://code.google.com/p/httplib2/
-Source0: http://httplib2.googlecode.com/files/httplib2-%{version}.tar.gz
+URL: https://github.com/jcgregorio/httplib2
+Source0: https://pypi.python.org/packages/source/h/httplib2/httplib2-%{version}.tar.gz
 Patch1: python-httplib2.certfile.patch
 Patch2: python-httplib2.getCertHost.patch
 Patch3: python-httplib2.rfc2459.patch
@@ -36,7 +36,7 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%doc README
+#%doc README.md
 %{python_sitelib}/*
 
 %changelog

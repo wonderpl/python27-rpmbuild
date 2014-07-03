@@ -1,5 +1,5 @@
 Name: python27-requests
-Version: 2.2.1
+Version: 2.3.0
 Release: 1
 Summary: Python HTTP for Humans
 Group: Development/Libraries

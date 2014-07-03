@@ -1,5 +1,5 @@
 Name: python27-zope-event
-Version: 4.0.2
+Version: 4.0.3
 Release: 1
 Summary: Zope Event Publication
 Group: Development/Languages
@@ -31,7 +31,7 @@ zope.event can be found in zope.component.)
 %{__python} setup.py test
  
 %files
-%doc CHANGES.txt COPYRIGHT.txt LICENSE.txt README.txt
+%doc CHANGES.rst COPYRIGHT.txt LICENSE.txt README.rst
 %{python_sitelib}/zope*
 %exclude %{python_sitelib}/zope/event/tests.py*
 
