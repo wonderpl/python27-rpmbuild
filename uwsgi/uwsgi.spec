@@ -1,5 +1,5 @@
 Name: uwsgi
-Version: 2.0.1
+Version: 2.0.5
 Release: 1%{?dist}
 Summary: Fast, self-healing, application container server
 Group: System Environment/Daemons   
