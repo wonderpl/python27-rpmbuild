@@ -1,5 +1,5 @@
 Name: python27-twitter
-Version: 0.8.7
+Version: 1.3.1
 Release: 1
 Summary: A Python wrapper around the Twitter API
 Group: Development/Libraries
@@ -10,10 +10,10 @@ Source0: http://pypi.python.org/packages/source/p/python-twitter/python-twitter-
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
 BuildRequires: python27-setuptools
-Requires: python27-simplejson python27-oauth2
+Requires: python27-simplejson python27-requests-oauthlib
 
 %description
-A Python wrapper around the Twitter API.
+This library provides a pure Python interface for the Twitter API.
 
 %prep
 %setup -q -n python-twitter-%{version}
@@ -25,6 +25,9 @@ A Python wrapper around the Twitter API.
 rm -rf %{buildroot}
 %{__python} setup.py install -O1 --skip-build --root %{buildroot}
 
+%check
+#%{__python} setup.py test
+
 %clean
 rm -rf %{buildroot}
 
@@ -34,5 +37,8 @@ rm -rf %{buildroot}
 %{python_sitelib}/*
 
 %changelog
+* Mon Jul  7 2014 Paul Egan <paulegan@rockpack.com> - 1.3.1-1
+- Bumped
+
 * Fri Mar 08 2013 Paul Egan <paulegan@rockpack.com> - 0.8.7-1
 - Initial release
