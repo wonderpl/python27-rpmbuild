@@ -1,6 +1,6 @@
 Name: python27-cffi
 Version: 0.8.2
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: Foreign Function Interface for Python calling C code
 Group: Development/Libraries
 License: MIT
@@ -9,6 +9,7 @@ Source0: https://pypi.python.org/packages/source/c/cffi/cffi-%{version}.tar.gz
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: python27-setuptools python27-pycparser
+Requires: python27-pycparser
 
 %description
 Foreign Function Interface for Python calling C code. The aim of this project

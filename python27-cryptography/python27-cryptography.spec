@@ -1,6 +1,6 @@
 Name: python27-cryptography
 Version: 0.4
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: cryptography is a package which provides cryptographic recipes and primitives
 Group: Development/Libraries
 License: ASL 2.0
@@ -10,6 +10,7 @@ Source0: https://pypi.python.org/packages/source/c/cryptography/cryptography-%{v
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: gcc libffi-devel python-devel openssl-devel
 BuildRequires: python27-setuptools
+Requires: python27-cffi
 
 %description
 Cryptography is a package which provides cryptographic recipes and primitives
