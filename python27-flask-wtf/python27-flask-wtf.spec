@@ -1,12 +1,11 @@
 Name: python27-flask-wtf
-Version: 0.9.5
-Release: 2
+Version: 0.10.0
+Release: 1
 Summary: Simple integration of Flask and WTForms
 Group: Development/Libraries
 License: BSD
 URL: https://github.com/ajford/flask-wtf
 Source0: http://pypi.python.org/packages/source/F/Flask-WTF/Flask-WTF-%{version}.tar.gz
-Patch1: requires.patch
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
@@ -19,7 +18,6 @@ and Recaptcha integration.
 
 %prep
 %setup -q -n Flask-WTF-%{version}
-%patch1 -p1
 
 %build
 %{__python} setup.py build
