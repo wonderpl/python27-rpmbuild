@@ -7,6 +7,8 @@
 %_specdir     %{_rpmtopdir}
 %_srcrpmdir   %{_rpmtopdir}
 
+%_python_major 2
+%_python_minor 7
 %__python /usr/bin/python2.7
 
 %_smp_mflags  -j3
@@ -22,3 +24,19 @@
 # Override the default gpg commands to remove the --passphrase-fd argument and allow GPG agent to be used
 %__gpg_check_password_cmd /bin/true
 %__gpg_sign_cmd %{__gpg} gpg --batch --no-verbose --no-armor --no-secmem-warning -u "%{_gpg_name}" -sbo %{__signature_filename} %{__plaintext_filename}
+
+# From Fedora macros.rubygems
+%gem_dir /usr/lib/ruby/gems/1.8
+%gem_install(d:n:) \
+mkdir -p %{-d*}%{!?-d:.%{gem_dir}} \
+\
+CONFIGURE_ARGS="--with-cflags='%{optflags}' $CONFIGURE_ARGS" \\\
+gem1.8 install \\\
+        -V \\\
+        --local \\\
+        --install-dir %{-d*}%{!?-d:.%{gem_dir}} \\\
+        --bindir .%{_bindir} \\\
+        --force \\\
+        --backtrace \\\
+        %{-n*}%{!?-n:%{gem_name}-%{version}.gem} \
+%{nil}
