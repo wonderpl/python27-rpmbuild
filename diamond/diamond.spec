@@ -1,5 +1,5 @@
 Name: diamond
-Version: 3.4.188
+Version: 3.4.421
 Release: 1
 Summary: Smart data producer for graphite graphing package
 Group: Development/Libraries
@@ -10,7 +10,6 @@ Source1: diamond.conf
 Source2: collector_defaults
 Patch1: postgres-collector-replication.patch
 Patch2: myrrix-collector.patch
-Patch3: handler-error.patch
 
 BuildArch: noarch
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
@@ -27,10 +26,9 @@ collectors for gathering metrics from almost any source.
 %setup -q -n diamond-%{version}
 %patch1 -p0
 %patch2 -p0
-%patch3 -p1
 
 # Force Amazon Linux to be recognised like CentOS
-sed -e "s/'centos', /'', 'fedora', &/" -i setup.py
+sed -e "s/'centos', /'', &/" -i setup.py
 
 %build
 %{__python} setup.py build

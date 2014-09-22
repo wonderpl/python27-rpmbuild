@@ -1,24 +1,21 @@
---- src/collectors/postgres/postgres.py	2014-01-03 20:44:43.000000000 +0000
-+++ src/collectors/postgres/postgres.py	2014-02-14 23:20:23.000000000 +0000
-@@ -450,6 +450,17 @@
+--- src/collectors/postgres/postgres.py.orig	2014-05-11 19:47:22.000000000 +0100
++++ src/collectors/postgres/postgres.py	2014-09-22 21:55:50.443699598 +0100
+@@ -460,6 +460,14 @@
      """
  
  
 +class DatabaseReplicationStats(QueryStats):
 +    path = "database.replication.%(metric)s"
-+
-+    def fetch(self):
-+        slave_conn = self.connections.values()[0]
-+        cursor = slave_conn.cursor()
-+        cursor.execute("select extract('epoch' from now()) - extract('epoch' from pg_last_xact_replay_timestamp())")
-+        replay_lag = cursor.fetchone()[0]
-+        self.data = [dict(metric='replay_lag', value=replay_lag)]
++    multi_db = False
++    query = """
++        SELECT EXTRACT(epoch FROM current_timestamp - pg_last_xact_replay_timestamp()) as replay_lag
++    """
 +
 +
  metrics_registry = {
      'DatabaseStats': DatabaseStats,
      'DatabaseConnectionCount': DatabaseConnectionCount,
-@@ -468,16 +479,19 @@
+@@ -478,16 +486,19 @@
      'UserConnectionCount': UserConnectionCount,
      'TableScanStats': TableScanStats,
      'TupleAccessStats': TupleAccessStats,
