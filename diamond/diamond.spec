@@ -1,6 +1,6 @@
 Name: diamond
 Version: 3.4.421
-Release: 1
+Release: 2
 Summary: Smart data producer for graphite graphing package
 Group: Development/Libraries
 License: MIT License
@@ -29,6 +29,9 @@ collectors for gathering metrics from almost any source.
 
 # Force Amazon Linux to be recognised like CentOS
 sed -e "s/'centos', /'', &/" -i setup.py
+
+# Comment out default host for handlers
+sed -e 's/^host *=/#&/' -i conf/handlers/*.conf
 
 %build
 %{__python} setup.py build
