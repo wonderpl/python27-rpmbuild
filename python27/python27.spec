@@ -1,17 +1,11 @@
-#%define _buildid .18
-
 # ======================================================
 # Conditionals and other variables controlling the build
 # ======================================================
 %bcond_with X11
 
-%global _skip_check 1
-
 %{!?__python_ver:%global __python_ver EMPTY}
 %global __python_ver 27
 %global unicode ucs4
-
-%global _default_patch_fuzz 2
 
 %if "%{__python_ver}" != "EMPTY"
 %global main_python 0
@@ -51,12 +45,17 @@
 
 %global with_systemtap 1
 
-# some arches dont have valgrind so we need to disable its support on them
-%ifarch %{ix86} x86_64 ppc ppc64 s390x
+# some arches don't have valgrind so we need to disable its support on them
+%ifnarch s390 ppc64le
 %global with_valgrind 1
 %else
 %global with_valgrind 0
 %endif
+
+%global with_gdbm 1
+
+# Turn this to 0 to turn off the "check" phase:
+%global run_selftest_suite 0
 
 # Some of the files below /usr/lib/pythonMAJOR.MINOR/test  (e.g. bad_coding.py)
 # are deliberately invalid, leading to SyntaxError exceptions if they get
@@ -64,7 +63,7 @@
 #
 # These errors are ignored by the normal python build, and aren't normally a
 # problem in the buildroots since /usr/bin/python isn't present.
-# 
+#
 # However, for the case where we're rebuilding the python srpm on a machine
 # that does have python installed we need to set this to avoid
 # brp-python-bytecompile treating these as fatal errors:
@@ -76,7 +75,8 @@
 #   patch 4 (CFLAGS)
 #   patch 52 (valgrind)
 #   patch 55 (systemtap)
-# 
+#   patch 145 (linux2)
+#
 # For patch 55 (systemtap), we need to get a new header for configure to use
 #
 # configure.in requires autoconf-2.65, but the version in Fedora is currently
@@ -106,8 +106,8 @@
 Summary: An interpreted, interactive, object-oriented programming language
 Name: %{python}
 # Remember to also rebase python-docs when changing this:
-Version: 2.7.6
-Release: 1%{?_buildid}%{?dist}
+Version: 2.7.8
+Release: 6%{?dist}
 License: Python
 Group: Development/Languages
 Requires: %{python}-libs%{?_isa} = %{version}-%{release}
@@ -122,15 +122,20 @@ Provides: python(abi) = %{pybasever}
 # (keep this list alphabetized)
 
 BuildRequires: autoconf
+#BuildRequires: bluez-libs-devel
 BuildRequires: bzip2
 BuildRequires: bzip2-devel
 BuildRequires: db4-devel
 BuildRequires: expat-devel
+
 BuildRequires: findutils
 BuildRequires: gcc-c++
+%if %{with_gdbm}
 BuildRequires: gdbm-devel
+%endif
 BuildRequires: glibc-devel
 BuildRequires: gmp-devel
+#BuildRequires: libdb-devel
 BuildRequires: libffi-devel
 BuildRequires: ncurses-devel
 BuildRequires: openssl-devel
@@ -161,6 +166,7 @@ BuildRequires: tix-devel
 BuildRequires: tk-devel
 %endif
 
+
 # =======================
 # Source code and patches
 # =======================
@@ -190,6 +196,7 @@ Source5: pyfuntop.stp
 #  __python2, python2_sitelib, python2_sitearch, python2_version
 Source6: macros.python2
 
+Source7: pynche
 
 # Modules/Setup.dist is ultimately used by the "makesetup" script to construct
 # the Makefile and config.c
@@ -222,7 +229,7 @@ Source6: macros.python2
 #     - unicodedata unicodedata.c    # static Unicode character database
 #     - _locale _localemodule.c
 #     - fcntl fcntlmodule.c	# fcntl(2) and ioctl(2)
-#     - spwd spwdmodule.c		# spwd(3) 
+#     - spwd spwdmodule.c		# spwd(3)
 #     - grp grpmodule.c		# grp(3)
 #     - select selectmodule.c	# select(2); not on ancient System V
 #     - mmap mmapmodule.c  # Memory-mapped files
@@ -265,7 +272,7 @@ Patch0: python-2.7.1-config.patch
 # in 2.2.1-12 as a response to the -g option needing TkInter installed
 # (Red Hat Linux 8)
 # Not upstream
-Patch1: Python-2.2.1-pydocnogui.patch
+Patch1: 00001-pydocnogui.patch
 
 # Add $(CFLAGS) to the linker arguments when linking the "python" binary
 # since some architectures (sparc64) need this (rhbz:199373).
@@ -279,22 +286,22 @@ Patch4: python-2.5-cflags.patch
 # though the proposed upstream patches are, alas, different
 Patch6: python-2.5.1-plural-fix.patch
 
-# This patch was listed in the changelog as: 
+# This patch was listed in the changelog as:
 #  * Fri Sep 14 2007 Jeremy Katz <katzj@redhat.com> - 2.5.1-11
-#  - fix encoding of sqlite .py files to work around weird encoding problem 
+#  - fix encoding of sqlite .py files to work around weird encoding problem
 #  in Turkish (#283331)
 # A traceback attached to rhbz 244016 shows the problem most clearly: a
 # traceback on attempting to import the sqlite module, with:
 #   "SyntaxError: encoding problem: with BOM (__init__.py, line 1)"
 # This seems to come from Parser/tokenizer.c:check_coding_spec
 # Our patch changes two source files within sqlite3, removing the
-# "coding: ISO-8859-1" specs and character E4 = U+00E4 = 
-# LATIN SMALL LETTER A WITH DIAERESIS from in ghaering's surname. 
+# "coding: ISO-8859-1" specs and character E4 = U+00E4 =
+# LATIN SMALL LETTER A WITH DIAERESIS from in ghaering's surname.
 #
 # It may be that the conversion of "ISO-8859-1" to "iso-8859-1" is thwarted
 # by the implementation of "tolower" in the Turkish locale; see:
 #   https://bugzilla.redhat.com/show_bug.cgi?id=191096#c9
-# 
+#
 # TODO: Not yet sent upstream, and appears to me (dmalcolm 2010-01-29) that
 # it may be papering over a symptom
 Patch7: python-2.5.1-sqlite-encoding.patch
@@ -324,29 +331,16 @@ Patch16: python-2.6-rpath.patch
 # super() as it's an old-style class
 Patch17: python-2.6.4-distutils-rpath.patch
 
-# Patch setup.py so that it links against db-4.8:
-Patch54: python-2.6.4-setup-db48.patch
-
+# 00055 #
 # Systemtap support: add statically-defined probe points
 # Patch based on upstream bug: http://bugs.python.org/issue4111
 # fixed up by mjw and wcohen for 2.6.2, then fixed up by dmalcolm for 2.6.4
 # then rewritten by mjw (attachment 390110 of rhbz 545179), then reformatted
 # for 2.7rc1 by dmalcolm:
-Patch55: python-2.7rc1-dtrace.patch
+Patch55: 00055-systemtap.patch
 
-# "lib64 patches"
-# This patch seems to be associated with bug 122304, which was
-#  http://sourceforge.net/tracker/?func=detail&atid=105470&aid=931848&group_id=5470
-# and is now
-#  http://bugs.python.org/issue931848
-# However, as it stands this patch is merely a copy of:
-#  http://svn.python.org/view/python/trunk/Lib/test/test_re.py?r1=35825&r2=35824&pathrev=35825
-# which is already upstream
-# Earlier versions of the patch (from the "dist-pkgs" CVS repo within RH)
-# contained additional changes that applied fixes to the internals of the regex
-# module, but these appear to have all been applied as part of 
-#  http://bugs.python.org/issue931848
-Patch101: python-2.3.4-lib64-regex.patch
+# Upstream as of Python 2.7.4
+#  Patch101: 00101-lib64-regex.patch
 
 # Only used when "%{_lib}" == "lib64"
 # Fixup various paths throughout the build and in distutils from "lib" to "lib64",
@@ -361,17 +355,25 @@ Patch102: python-2.7.3-lib64.patch
 # and platform-specific code go to /usr/lib64 not /usr/lib, on 64-bit archs:
 Patch103: python-2.7-lib64-sysconfig.patch
 
+# 00104 #
+# Only used when "%{_lib}" == "lib64"
+# Another lib64 fix, for distutils/tests/test_install.py; not upstream:
+Patch104: 00104-lib64-fix-for-test_install.patch
+
+# 00111 #
 # Patch the Makefile.pre.in so that the generated Makefile doesn't try to build
 # a libpythonMAJOR.MINOR.a (bug 550692):
-Patch111: python-2.7rc1-no-static-lib.patch
+# Downstream only: not appropriate for upstream
+Patch111: 00111-no-static-lib.patch
 
+# 00112 #
 # Patch to support building both optimized vs debug stacks DSO ABIs, sharing
 # the same .py and .pyc files, using "_d.so" to signify a debug build of an
 # extension module.
 #
-# Based on Debian's patch for the same, 
+# Based on Debian's patch for the same,
 #  http://patch-tracker.debian.org/patch/series/view/python2.6/2.6.5-2/debug-build.dpatch
-# 
+#
 # (which was itself based on the upstream Windows build), but with some
 # changes:
 #
@@ -390,7 +392,7 @@ Patch111: python-2.7rc1-no-static-lib.patch
 # to add the _d there, when building an extension.  This way, "make sharedlibs"
 # can build ctypes, by finding the sysmtem libffi.so (rather than failing to
 # find "libffi_d.so"), and builds the module as _ctypes_d.so
-#   
+#
 #   * Similarly, update build_ext:get_libraries handling of Py_ENABLE_SHARED by
 # appending "_d" to the python library's name for the debug configuration
 #
@@ -429,17 +431,21 @@ Patch111: python-2.7rc1-no-static-lib.patch
 Patch112: python-2.7.3-debug-build.patch
 
 
+# 00113 #
 # Add configure-time support for the COUNT_ALLOCS and CALL_PROFILE options
 # described at http://svn.python.org/projects/python/trunk/Misc/SpecialBuilds.txt
 # so that if they are enabled, they will be in that build's pyconfig.h, so that
 # extension modules will reliably use them
-Patch113: python-2.6.5-more-configuration-flags.patch
+# Not yet sent upstream
+Patch113: 00113-more-configuration-flags.patch
 
+# 00114 #
 # Add flags for statvfs.f_flag to the constant list in posixmodule (i.e. "os")
 # (rhbz:553020); partially upstream as http://bugs.python.org/issue7647
-Patch114: python-2.7rc1-statvfs-f_flag-constants.patch
+# Not yet sent upstream
+Patch114: 00114-statvfs-f_flag-constants.patch
 
-# Upstream of of Python 2.7.3:
+# Upstream as of Python 2.7.3:
 #  Patch115: make-pydoc-more-robust-001.patch
 
 # Upstream r79310 removed the "Modules" directory from sys.path when Python is
@@ -454,24 +460,22 @@ Patch114: python-2.7rc1-statvfs-f_flag-constants.patch
 #   File "/home/david/rpmbuild/BUILDROOT/python-2.7-0.1.rc2.fc14.x86_64/usr/lib64/python2.7/struct.py", line 1, in <module>
 #    from _struct import *
 # ImportError: No module named _struct
-#
 # This patch adds the build Modules directory to build path.
 Patch121: 00121-add-Modules-to-build-path.patch
 
+# 00125 #
 # COUNT_ALLOCS is useful for debugging, but the upstream behaviour of always
 # emitting debug info to stdout on exit is too verbose and makes it harder to
 # use the debug build.  Add a "PYTHONDUMPCOUNTS" environment variable which
 # must be set to enable the output on exit
-# Not yet sent upstream:
-Patch125: less-verbose-COUNT_ALLOCS.patch
+# Not yet sent upstream
+Patch125: 00125-less-verbose-COUNT_ALLOCS.patch
 
-# Fix dbm module on big-endian 64-bit
-# Sent upstream as http://bugs.python.org/issue9687 (rhbz#626756)
-Patch126: fix-dbm_contains-on-64bit-bigendian.patch
+# Upstream as of Python 2.7.5
+#  Patch126: fix-dbm_contains-on-64bit-bigendian.patch
 
-# Fix test_structmember on big-endian 64-bit
-# Sent upstream as http://bugs.python.org/issue9960
-Patch127: fix-test_structmember-on-64bit-bigendian.patch
+# Upstream as of Python 2.7.5
+#  Patch127: fix-test_structmember-on-64bit-bigendian.patch
 
 # 2.7.1 (in r84230) added a test to test_abc which fails if python is
 # configured with COUNT_ALLOCS, which is the case for our debug build
@@ -479,11 +483,7 @@ Patch127: fix-test_structmember-on-64bit-bigendian.patch
 # Not yet sent upstream
 Patch128: python-2.7.1-fix_test_abc_with_COUNT_ALLOCS.patch
 
-# Fix the --with-tsc option on ppc64, and rework it on 32-bit ppc to avoid
-# aliasing violations (rhbz#698726)
-# Sent upstream as http://bugs.python.org/issue12872
-Patch129: python-2.7.2-tsc-on-ppc.patch
-
+# 00130 #
 # Add "--extension-suffix" option to python-config and python-debug-config
 # (rhbz#732808)
 #
@@ -500,20 +500,429 @@ Patch129: python-2.7.2-tsc-on-ppc.patch
 # Not yet sent upstream
 Patch130: python-2.7.2-add-extension-suffix-to-python-config.patch
 
+# 00131 #
 # The four tests in test_io built on top of check_interrupted_write_retry
 # fail when built in Koji, for ppc and ppc64; for some reason, the SIGALRM
 # handlers are never called, and the call to write runs to completion
 # (rhbz#732998)
-Patch131: python-2.7.2-disable-tests-in-test_io.patch
+Patch131: 00131-disable-tests-in-test_io.patch
 
-# This is the generated patch to "configure"; see the description of
-#   %{regenerate_autotooling_patch}
-# above:
-Patch300: python-2.7-autotool-intermediates.patch
+# 00132 #
+# Add non-standard hooks to unittest for use in the "check" phase below, when
+# running selftests within the build:
+#   @unittest._skipInRpmBuild(reason)
+# for tests that hang or fail intermittently within the build environment, and:
+#   @unittest._expectedFailureInRpmBuild
+# for tests that always fail within the build environment
+#
+# The hooks only take effect if WITHIN_PYTHON_RPM_BUILD is set in the
+# environment, which we set manually in the appropriate portion of the "check"
+# phase below (and which potentially other python-* rpms could set, to reuse
+# these unittest hooks in their own "check" phases)
+Patch132: 00132-add-rpmbuild-hooks-to-unittest.patch
+
+# 00133 #
+# "dl" is deprecated, and test_dl doesn't work on 64-bit builds:
+Patch133: 00133-skip-test_dl.patch
+
+# 00134 #
+# Fix a failure in test_sys.py when configured with COUNT_ALLOCS enabled
+# Not yet sent upstream
+Patch134: 00134-fix-COUNT_ALLOCS-failure-in-test_sys.patch
+
+# 00135 #
+# Skip "test_callback_in_cycle_resurrection" in a debug build, where it fails:
+# Not yet sent upstream
+Patch135: 00135-skip-test-within-test_weakref-in-debug-build.patch
+
+# 00136 #
+# Some tests try to seek on sys.stdin, but don't work as expected when run
+# within Koji/mock; skip them within the rpm build:
+Patch136: 00136-skip-tests-of-seeking-stdin-in-rpmbuild.patch
+
+# 00137 #
+# Some tests within distutils fail when run in an rpmbuild:
+Patch137: 00137-skip-distutils-tests-that-fail-in-rpmbuild.patch
+
+# 00138 #
+# Fixup some tests within distutils to work with how debug builds are set up:
+Patch138: 00138-fix-distutils-tests-in-debug-build.patch
+
+# 00139 #
+# ARM-specific: skip known failure in test_float:
+#  http://bugs.python.org/issue8265 (rhbz#706253)
+Patch139: 00139-skip-test_float-known-failure-on-arm.patch
+
+# 00140 #
+# Sparc-specific: skip known failure in test_ctypes:
+#  http://bugs.python.org/issue8314 (rhbz#711584)
+# which appears to be a libffi bug
+Patch140: 00140-skip-test_ctypes-known-failure-on-sparc.patch
+
+# 00141 #
+# Fix test_gc's test_newinstance case when configured with COUNT_ALLOCS:
+# Not yet sent upstream
+Patch141: 00141-fix-test_gc_with_COUNT_ALLOCS.patch
+
+# 00142 #
+# Some pty tests fail when run in mock (rhbz#714627):
+Patch142: 00142-skip-failing-pty-tests-in-rpmbuild.patch
+
+# 00143 #
+# Fix the --with-tsc option on ppc64, and rework it on 32-bit ppc to avoid
+# aliasing violations (rhbz#698726)
+# Sent upstream as http://bugs.python.org/issue12872
+Patch143: 00143-tsc-on-ppc.patch
+
+# 00144 #
+# (Optionally) disable the gdbm module:
+Patch144: 00144-no-gdbm.patch
+
+# 00145 #
+# Upstream as of Python 2.7.3:
+#  Patch145: 00145-force-sys-platform-to-be-linux2.patch
+
+# 00146 #
+# Support OpenSSL FIPS mode (e.g. when OPENSSL_FORCE_FIPS_MODE=1 is set)
+# - handle failures from OpenSSL (e.g. on attempts to use MD5 in a
+#   FIPS-enforcing environment)
+# - add a new "usedforsecurity" keyword argument to the various digest
+#   algorithms in hashlib so that you can whitelist a callsite with
+#   "usedforsecurity=False"
+# (sent upstream for python 3 as http://bugs.python.org/issue9216; this is a
+# backport to python 2.7; see RHEL6 patch 119)
+# - enforce usage of the _hashlib implementation: don't fall back to the _md5
+#   and _sha* modules (leading to clearer error messages if fips selftests
+#   fail)
+# - don't build the _md5 and _sha* modules; rely on the _hashlib implementation
+#   of hashlib (for example, md5.py will use _hashlib's implementation of MD5,
+#   if permitted by the FIPS setting)
+# (rhbz#563986)
+Patch146: 00146-hashlib-fips.patch
+
+# 00147 #
+# Add a sys._debugmallocstats() function
+# Based on patch 202 from RHEL 5's python.spec, with updates from rhbz#737198
+# Sent upstream as http://bugs.python.org/issue14785
+Patch147: 00147-add-debug-malloc-stats.patch
+
+# 00148 #
+# Upstream as of Python 2.7.3:
+#  Patch148: 00148-gdbm-1.9-magic-values.patch
+
+# 00149 #
+# python3.spec's
+#   Patch149: 00149-backport-issue11254-pycache-bytecompilation-fix.patch
+# is not relevant for Python 2
+
+# 00150 #
+# python3.spec has:
+#  Patch150: 00150-disable-rAssertAlmostEqual-cmath-on-ppc.patch
+# as a workaround for a glibc bug on PPC (bz #750811)
+
+# 00151 #
+# Upstream as of Python 2.7.3:
+#  Patch151: 00151-fork-deadlock.patch
+
+# 00152 #
+# python3.spec has:
+#  Patch152: 00152-fix-test-gdb-regex.patch
+
+# 00153 #
+# Strip out lines of the form "warning: Unable to open ..." from gdb's stderr
+# when running test_gdb.py; also cope with change to gdb in F17 onwards in
+# which values are printed as "v@entry" rather than just "v":
+# Not yet sent upstream
+Patch153: 00153-fix-test_gdb-noise.patch
+
+# 00154 #
+# python3.spec on f15 has:
+#  Patch154: 00154-skip-urllib-test-requiring-working-DNS.patch
+
+# 00155 #
+# Avoid allocating thunks in ctypes unless absolutely necessary, to avoid
+# generating SELinux denials on "import ctypes" and "import uuid" when
+# embedding Python within httpd (rhbz#814391)
+Patch155: 00155-avoid-ctypes-thunks.patch
+
+# 00156 #
+# Recent builds of gdb will only auto-load scripts from certain safe
+# locations.  Turn off this protection when running test_gdb in the selftest
+# suite to ensure that it can load our -gdb.py script (rhbz#817072):
+# Not yet sent upstream
+Patch156: 00156-gdb-autoload-safepath.patch
+
+# 00157 #
+# Update uid/gid handling throughout the standard library: uid_t and gid_t are
+# unsigned 32-bit values, but existing code often passed them through C long
+# values, which are signed 32-bit values on 32-bit architectures, leading to
+# negative int objects for uid/gid values >= 2^31 on 32-bit architectures.
+#
+# Introduce _PyObject_FromUid/Gid to convert uid_t/gid_t values to python
+# objects, using int objects where the value will fit (long objects otherwise),
+# and _PyArg_ParseUid/Gid to convert int/long to uid_t/gid_t, with -1 allowed
+# as a special case (since this is given special meaning by the chown syscall)
+#
+# Update standard library to use this throughout for uid/gid values, so that
+# very large uid/gid values are round-trippable, and -1 remains usable.
+# (rhbz#697470)
+Patch157: 00157-uid-gid-overflows.patch
+
+# Upstream as of Python 2.7.4
+# Patch158: 00158-fix-hashlib-leak.patch
+
+# 00160 #
+# python3.spec's
+#   Patch160: 00160-disable-test_fs_holes-in-rpm-build.patch
+# is not relevant for Python 2
+
+# 00161 #
+# python3.spec has:
+#   Patch161: 00161-fix-test_tools-directory.patch
+# which will likely become relevant for Python 2 next time we rebase
+
+# 00162 #
+# python3.spec has:
+#  Patch162: 00162-distutils-sysconfig-fix-CC-options.patch
+
+# 00163 #
+# python3.spec has:
+#  Patch163: 00163-disable-parts-of-test_socket-in-rpm-build.patch
+
+# 00164 #
+# python3.spec has:
+#  Patch164: 00164-disable-interrupted_write-tests-on-ppc.patch
+
+# 00165 #
+# Backport to Python 2 from Python 3.3 of improvements to the "crypt" module
+# adding precanned ways of salting a password (rhbz#835021)
+# Based on r88500 patch to py3k from Python 3.3
+# plus 6482dd1c11ed, 0586c699d467, 62994662676a, 74a1110a3b50, plus edits
+# to docstrings to note that this additional functionality is not standard
+# within 2.7
+Patch165: 00165-crypt-module-salt-backport.patch
+
+# 00166 #
+# Bulletproof the gdb debugging hooks against the case where co_filename for
+# a frame can't be read from the inferior process (rhbz#912025)
+#
+# Not yet sent upstream
+Patch166: 00166-fix-fake-repr-in-gdb-hooks.patch
+
+# 00167 #
+# Don't run any of the stack navigation tests in test_gdb when Python is
+# optimized, since there appear to be many different ways in which gdb can
+# fail to read the PyFrameObject* for arbitrary places in the callstack,
+# presumably due to compiler optimization (rhbz#912025)
+#
+# Not yet sent upstream
+Patch167: 00167-disable-stack-navigation-tests-when-optimized-in-test_gdb.patch
+
+# 00168 #
+# Update distutils.sysconfig so that if CFLAGS is defined in the environment,
+# when building extension modules, it is appended to the full compilation
+# flags from Python's Makefile, rather than instead reducing the compilation
+# flags to the subset within OPT and adding it to those.
+#
+# In particular, this should ensure that "-fno-strict-aliasing" is used by
+# "python setup.py build" even when CFLAGS is defined in the environment.
+#
+# (rhbz#849994)
+Patch168: 00168-distutils-cflags.patch
+
+# 00169 #
+# Use SHA-256 rather than implicitly using MD5 within the challenge handling
+# in multiprocessing.connection
+#
+# Sent upstream as http://bugs.python.org/issue17258
+# (rhbz#879695)
+Patch169: 00169-avoid-implicit-usage-of-md5-in-multiprocessing.patch
+
+# 00170 #
+# In debug builds, try to print repr() when a C-level assert fails in the
+# garbage collector (typically indicating a reference-counting error
+# somewhere else e.g in an extension module)
+# Backported to 2.7 from a patch I sent upstream for py3k
+#   http://bugs.python.org/issue9263  (rhbz#614680)
+# hiding the proposed new macros/functions within gcmodule.c to avoid exposing
+# them within the extension API.
+# (rhbz#850013)
+Patch170: 00170-gc-assertions.patch
+
+# Upstream as of Python 2.7.4
+#  Patch171: 00171-raise-correct-exception-when-dev-urandom-is-missing.patch
+
+# Upstream as of Python 2.7.4
+#  Patch172: 00172-use-poll-for-multiprocessing-socket-connection.patch
+
+# 00173 #
+# Workaround for ENOPROTOOPT seen in Koji within
+# test.test_support.bind_port()
+# (rhbz#913732)
+Patch173: 00173-workaround-ENOPROTOOPT-in-bind_port.patch
+
+# 00174 #
+# Workaround for failure to set up prefix/exec_prefix when running
+# an embededed libpython that sets Py_SetProgramName() to a name not
+# on $PATH when run from the root directory due to
+#   https://fedoraproject.org/wiki/Features/UsrMove
+# e.g. cmpi-bindings under systemd (rhbz#817554):
+Patch174: 00174-fix-for-usr-move.patch
+
+# 00175 #
+# Upstream as of Python 2.7.5
+#  Patch175: 00175-fix-configure-Wformat.patch
+
+# 00176 #
+# python3.spec had:
+#  Patch176: 00176-upstream-issue16754-so-extension.patch
+# doesn't affect python2
+
+# 00177 #
+# python3.spec has
+#  Patch177: 00177-platform-unicode.patch
+# Does not affect python2
+
+# 00178 #
+# python3.spec has
+#  Patch178: 00178-dont-duplicate-flags-in-sysconfig.patch
+# Does not affect python2 AFAICS (different sysconfig values initialization)
+
+# 00179 #
+# python3.spec has
+#  Patch179: 00179-dont-raise-error-on-gdb-corrupted-frames-in-backtrace.patch
+# Doesn't seem to affect python2
+
+# 00180 #
+# Enable building on ppc64p7
+# Not appropriate for upstream, Fedora-specific naming
+Patch180: 00180-python-add-support-for-ppc64p7.patch
+
+# 00181 #
+# Allow arbitrary timeout for Condition.wait, as reported in
+# https://bugzilla.redhat.com/show_bug.cgi?id=917709
+# Upstream doesn't want this: http://bugs.python.org/issue17748
+# But we have no better solution downstream yet, and since there is
+# no API breakage, we apply this patch.
+# Doesn't apply to Python 3, where this is fixed otherwise and works.
+Patch181: 00181-allow-arbitrary-timeout-in-condition-wait.patch
+
+# 00182 #
+# python3.spec had
+#  Patch182: 00182-fix-test_gdb-test_threads.patch
+
+# 00183 #
+# python3.spec has
+#  Patch183: 00183-cve-2013-2099-fix-ssl-match_hostname-dos.patch
+
+# 00184 #
+# Fix for https://bugzilla.redhat.com/show_bug.cgi?id=979696
+# Fixes build of ctypes against libffi with multilib wrapper
+# Python recognizes ffi.h only if it contains "#define LIBFFI_H",
+# but the wrapper doesn't contain that, which makes the build fail
+# We patch this by also accepting "#define ffi_wrapper_h"
+Patch184: 00184-ctypes-should-build-with-libffi-multilib-wrapper.patch
+
+# 00185 #
+# Makes urllib2 honor "no_proxy" enviroment variable for "ftp:" URLs
+# when ftp_proxy is set
+Patch185: 00185-urllib2-honors-noproxy-for-ftp.patch
+
+# 00187 #
+# Add an explicit RPATH to pyexpat.so pointing at the directory
+# containing the system expat (which has the extra XML_SetHashSalt
+# symbol), to avoid an ImportError with a link error if there's an
+# LD_LIBRARY_PATH containing a "vanilla" build of expat (without the
+# symbol)
+Patch187: 00187-add-RPATH-to-pyexpat.patch
+
+# 00189 #
+# Fixes gdb py-bt command not to raise exception while processing
+# statements from eval
+# rhbz#1008154 (patch by Attila Fazekas)
+Patch189: 00189-gdb-py-bt-dont-raise-exception-from-eval.patch
+
+# 00190 #
+#
+# Importing get_python_version in bdist_rpm
+# http://bugs.python.org/issue18045
+# rhbz#1029082
+# FIXED UPSTREAM
+#Patch190: 00190-get_python_version.patch
+
+# 00191 #
+#
+# Disabling NOOP test as it fails without internet connection
+Patch191: 00191-disable-NOOP.patch
+
+# 00192 #
+#
+# Fixing buffer overflow (upstream patch)
+# rhbz#1062375
+# FIXED UPSTREAM
+#Patch192: 00192-buffer-overflow.patch
+
+# 00193 #
+#
+# Enable loading sqlite extensions. This patch isn't needed for
+# python3.spec, since Python 3 has a configuration option for this.
+# rhbz#1066708
+# Patch provided by John C. Peterson
+Patch193: 00193-enable-loading-sqlite-extensions.patch
+
+# 00194 #
+#
+# Fix tests with SQLite >= 3.8.4
+# http://bugs.python.org/issue20901
+# http://hg.python.org/cpython/raw-rev/1763e27a182d
+# FIXED UPSTREAM
+#Patch194: 00194-fix-tests-with-sqlite-3.8.4.patch
+
+# Since openssl-1.0.1h-5.fc21 SSLv2 and SSLV3 protocols
+# are disabled by default in openssl, according the comment in openssl
+# patch this affects only SSLv23_method, this patch enables SSLv2
+# and SSLv3 when SSLv23_method is used
+# Update:
+# Patch disabled, Openssl reverted disabling sslv3 and now
+# disables only sslv2 all tests pass
+#Patch195: 00195-enable-sslv23-in-ssl.patch
+
+# http://bugs.python.org/issue21308
+# Backport of ssl module from python3
+Patch196: 00196-ssl-backport.patch
+
+# http://bugs.python.org/issue22023
+# Patch seg fault in unicodeobject.c
+Patch197: 00197-unicode_fromformat.patch
 
 # Amazon build patches
 Patch1000: python-2.7.2-notk.patch
 Patch1001: python-2.7.2-amazon.patch
+
+# (New patches go here ^^^)
+#
+# When adding new patches to "python" and "python3" in Fedora 17 onwards,
+# please try to keep the patch numbers in-sync between the two specfiles:
+#
+#   - use the same patch number across both specfiles for conceptually-equivalent
+#     fixes, ideally with the same name
+#
+#   - when a patch is relevant to both specfiles, use the same introductory
+#     comment in both specfiles where possible (to improve "diff" output when
+#     comparing them)
+#
+#   - when a patch is only relevant for one of the two specfiles, leave a gap
+#     in the patch numbering in the other specfile, adding a comment when
+#     omitting a patch, both in the manifest section here, and in the "prep"
+#     phase below
+#
+# Hopefully this will make it easier to ensure that all relevant fixes are
+# applied to both versions.
+
+# This is the generated patch to "configure"; see the description of
+#   %{regenerate_autotooling_patch}
+# above:
+Patch5000: 05000-autotool-intermediates.patch
 
 # ======================================================
 # Additional metadata, and subpackages
@@ -523,16 +932,22 @@ Provides: python2 = %{version}
 %if %{main_python}
 Obsoletes: Distutils
 Provides: Distutils
-Obsoletes: python2 
+Obsoletes: python2
 Obsoletes: python-elementtree <= 1.2.6
+Obsoletes: python-ordereddict <= 1.1-8
 Obsoletes: python-sqlite < 2.3.2
 Provides: python-sqlite = 2.3.2
 Obsoletes: python-ctypes < 1.0.1
 Provides: python-ctypes = 1.0.1
 Obsoletes: python-hashlib < 20081120
 Provides: python-hashlib = 20081120
+Obsoletes: python-unittest2 < 0.5.1-9
+Provides: python-unittest2 = 0.5.1-9
 Obsoletes: python-uuid < 1.31
 Provides: python-uuid = 1.31
+# obsolete, not provide PyXML as proposed in feature
+# https://fedoraproject.org/wiki/Features/RemovePyXML#How_To_Test
+Obsoletes: PyXML <= 0.8.4-29
 
 # python-argparse is part of python as of version 2.7
 # drop this Provides in F17
@@ -612,9 +1027,9 @@ Obsoletes: python2-tools
 %endif
 
 %description tools
-This package includes several tools to help with the development of Python   
-programs, including IDLE (an IDE with editing and debugging facilities), a 
-color editor (pynche), and a python gettext program (pygettext.py).  
+This package includes several tools to help with the development of Python
+programs, including IDLE (an IDE with editing and debugging facilities), a
+color editor (pynche), and a python gettext program (pygettext.py).
 
 %package -n %{tkinter}
 Summary: A graphical user interface for the Python scripting language
@@ -707,6 +1122,16 @@ done
 #   Remove embedded copy of zlib:
 rm -r Modules/zlib || exit 1
 
+# Don't build upstream Python's implementation of these crypto algorithms;
+# instead rely on _hashlib and OpenSSL.
+#
+# For example, in our builds md5.py uses always uses hashlib.md5 (rather than
+# falling back to _md5 when hashlib.md5 is not available); hashlib.md5 is
+# implemented within _hashlib via OpenSSL (and thus respects FIPS mode)
+for f in md5module.c md5.c shamodule.c sha256module.c sha512module.c; do
+    rm Modules/$f
+done
+
 #
 # Apply patches:
 #
@@ -719,20 +1144,20 @@ rm -r Modules/zlib || exit 1
 # Try not disabling egg-infos, bz#414711
 #patch50 -p1 -b .egginfo
 
-%patch101 -p1 -b .lib64-regex
+# patch101: upstream as of Python 2.7.4
 %if "%{_lib}" == "lib64"
 %patch102 -p1 -b .lib64
 %patch103 -p1 -b .lib64-sysconfig
+%patch104 -p1
 %endif
 
 %patch10 -p1 -b .binutils-no-dep
-#patch11: upstream as of Python 2.7.3
+# patch11: upstream as of Python 2.7.3
 %patch13 -p1 -b .socketmodule
 %patch14 -p1 -b .socketmodule2
 %patch16 -p1 -b .rpath
 %patch17 -p1 -b .distutils-rpath
 
-#patch54 -p1 -b .setup-db48
 %if 0%{?with_systemtap}
 %patch55 -p1 -b .systemtap
 %endif
@@ -745,20 +1170,90 @@ rm -r Modules/zlib || exit 1
 
 %patch114 -p1 -b .statvfs-f-flag-constants
 
-#patch115: upstream as of Python 2.7.3
+# patch115: upstream as of Python 2.7.3
 
 %patch121 -p1
 %patch125 -p1 -b .less-verbose-COUNT_ALLOCS
-# Upstream as of 2.7.5
-#%patch126 -p0 -b .fix-dbm_contains-on-64bit-bigendian
-#%patch127 -p1 -b .fix-test_structmember-on-64bit-bigendian
+# 00126: upstream as of Python 2.7.5
+# 00127: upstream as of Python 2.7.5
 %patch128 -p1
-%patch129 -p1 -b .tsc-on-ppc
+
 %patch130 -p1
 
-%ifarch ppc ppc64
+%ifarch ppc %{power64}
 %patch131 -p1
 %endif
+
+%patch132 -p1
+%patch133 -p1
+%patch134 -p1
+%patch135 -p1
+%patch136 -p1 -b .stdin-test
+%patch137 -p1
+%patch138 -p1
+%ifarch %{arm}
+%patch139 -p1
+%endif
+%ifarch %{sparc}
+%patch140 -p1
+%endif
+%patch141 -p1
+%patch142 -p1 -b .tty-fail
+%patch143 -p1 -b .tsc-on-ppc
+%if !%{with_gdbm}
+%patch144 -p1
+%endif
+# 00145: upstream as of Python 2.7.3
+%patch146 -p1
+%patch147 -p1
+# 00148: upstream as of Python 2.7.3
+# 00149: not for python 2
+# 00150: not for python 2
+# 00151: upstream as of Python 2.7.3
+# 00152: not for python 2
+%patch153 -p0
+# 00154: not for python 2
+%patch155 -p1
+%patch156 -p1
+%patch157 -p1
+# 00158: upstream as of Python 2.7.4
+# 00160: not for python 2
+# 00161: not for python 2 yet
+# 00162: not for python 2 yet
+# 00163: not for python 2 yet
+# 00164: not for python 2 yet
+%patch165 -p1
+mv Modules/cryptmodule.c Modules/_cryptmodule.c
+%patch166 -p1
+%patch167 -p1
+%patch168 -p1
+%patch169 -p1
+%patch170 -p1
+# 00171: upstream as of Python 2.7.4
+# 00171: upstream as of Python 2.7.4
+%patch173 -p1
+%patch174 -p1 -b .fix-for-usr-move
+# 00175: upstream as of Python 2.7.5
+# 00176: not for python 2
+# 00177: not for python 2
+# 00178: not for python 2
+# 00179: not for python 2
+%patch180 -p1
+%patch181 -p1
+# 00182: not for python 2
+# 00183: not for python 2
+%patch184 -p1
+%patch185 -p1
+#%patch187 -p1
+%patch189 -p1
+# 00190: upstream as of Python 2.7.7
+%patch191 -p1
+# 00192: upstream as of Python 2.7.7
+%patch193 -p1
+# 00194: upstream as of Python 2.7.7
+#%patch195 -p1
+%patch196 -p1
+%patch197 -p1
 
 # amazon patches
 %if ! %{with X11}
@@ -772,7 +1267,7 @@ find -name "*~" |xargs rm -f
 %if ! 0%{regenerate_autotooling_patch}
 # Normally we apply the patch to "configure"
 # We don't apply the patch if we're working towards regenerating it
-%patch300 -p1 -b .autotool-intermediates
+%patch5000 -p0 -b .autotool-intermediates
 %endif
 
 
@@ -787,6 +1282,7 @@ export CXXFLAGS="$RPM_OPT_FLAGS -D_GNU_SOURCE -fPIC -fwrapv"
 export CPPFLAGS="$(pkg-config --cflags-only-I libffi)"
 export OPT="$RPM_OPT_FLAGS -D_GNU_SOURCE -fPIC -fwrapv"
 export LINKCC="gcc"
+export LDFLAGS="$RPM_LD_FLAGS"
 if pkg-config openssl ; then
   export CFLAGS="$CFLAGS $(pkg-config --cflags openssl)"
   export LDFLAGS="$LDFLAGS $(pkg-config --libs-only-L openssl)"
@@ -811,7 +1307,7 @@ PATH=~/autoconf-2.65/bin:$PATH autoconf
 autoheader
 
 # Regenerate the patch:
-gendiff . .autotool-intermediates > %{PATCH300}
+gendiff . .autotool-intermediates > %{PATCH5000}
 
 
 # Exit the build
@@ -821,7 +1317,7 @@ exit 1
 # Define a function, for how to perform a "build" of python for a given
 # configuration:
 BuildPython() {
-  ConfName=$1	      
+  ConfName=$1
   BinaryName=$2
   SymlinkName=$3
   ExtraConfigArgs=$4
@@ -834,31 +1330,23 @@ BuildPython() {
 
   pushd $ConfDir
 
-../../configure --build=%{_build} --host=%{_host} --target=%{_target_platform} \
-        --prefix=%{_prefix} \
-        --exec-prefix=%{_exec_prefix} \
-        --sbindir=%{_sbindir} \
-        --sysconfdir=%{_sysconfdir} \
-        --datadir=%{_datadir} \
-        --includedir=%{_includedir} \
-        --libdir=%{_libdir} \
-        --libexecdir=%{_libexecdir} \
-        --localstatedir=%{_localstatedir} \
-        --sharedstatedir=%{_sharedstatedir} \
-        --mandir=%{_mandir} \
-        --infodir=%{_infodir} \
+  # Use the freshly created "configure" script, but in the directory two above:
+  %global _configure $topdir/configure
+
+%configure \
   --enable-ipv6 \
-  --enable-unicode=%{unicode} \
   --enable-shared \
+  --enable-unicode=%{unicode} \
+  --with-dbmliborder=gdbm:ndbm:bdb \
+  --with-system-expat \
   --with-system-ffi \
-%if 0%{?with_valgrind}
-  --with-valgrind \
-%endif
 %if 0%{?with_systemtap}
   --with-dtrace \
   --with-tapset-install-dir=%{tapsetdir} \
 %endif
-  --with-system-expat \
+%if 0%{?with_valgrind}
+  --with-valgrind \
+%endif
   $ExtraConfigArgs \
   %{nil}
 
@@ -894,7 +1382,7 @@ LD_LIBRARY_PATH="$topdir/$ConfDir" PATH=$PATH:$topdir/$ConfDir make -s EXTRA_CFL
 BuildPython debug \
   python-debug \
   python%{pybasever}-debug \
-%ifarch %{ix86} x86_64 ppc
+%ifarch %{ix86} x86_64 ppc %{power64}
   "--with-pydebug --with-tsc --with-count-allocs --with-call-profile" \
 %else
   "--with-pydebug --with-count-allocs --with-call-profile" \
@@ -925,7 +1413,7 @@ done
 
 InstallPython() {
 
-  ConfName=$1	      
+  ConfName=$1
   BinaryName=$2
   PyInstSoName=$3
 
@@ -950,7 +1438,7 @@ make install DESTDIR=%{buildroot}
 #
 # See https://fedoraproject.org/wiki/Features/EasierPythonDebugging for more
 # information
-# 
+#
 # Initially I tried:
 #  /usr/lib/libpython2.6.so.1.0-gdb.py
 # but doing so generated noise when ldconfig was rerun (rhbz:562980)
@@ -992,7 +1480,7 @@ InstallPython optimized \
   %{py_INSTSONAME_optimized}
 
 
-# Fix the interpreter path in binaries installed by distutils 
+# Fix the interpreter path in binaries installed by distutils
 # (which changes them by itself)
 # Make sure we preserve the file permissions
 for fixed in %{buildroot}%{_bindir}/pydoc; do
@@ -1017,10 +1505,6 @@ cp -a save_bits_of_test/* %{buildroot}/%{pylibdir}/test
 fi
 
 %if %{main_python}
-ln -s python2.7-debug-config %{buildroot}%{_bindir}/python-debug-config
-%if 0%{?with_debug_build}
-ln -s python-debug %{buildroot}%{_bindir}/python2-debug
-%endif # with_debug_build
 %else
 mv %{buildroot}%{_bindir}/python %{buildroot}%{_bindir}/%{python}
 %if 0%{?with_debug_build}
@@ -1034,16 +1518,13 @@ mv %{buildroot}%{_bindir}/python-debug %{buildroot}%{_bindir}/%{python}-debug
 mkdir -p ${RPM_BUILD_ROOT}%{site_packages}
 
 #pynche
-cat > ${RPM_BUILD_ROOT}%{_bindir}/pynche << EOF
-#!/bin/bash
-exec %{site_packages}/pynche/pynche
-EOF
+install -p -m755 %{SOURCE7} ${RPM_BUILD_ROOT}%{_bindir}/pynche
 chmod 755 ${RPM_BUILD_ROOT}%{_bindir}/pynche
 rm -f Tools/pynche/*.pyw
-cp -r Tools/pynche \
+cp -rp Tools/pynche \
   ${RPM_BUILD_ROOT}%{site_packages}/
 
-cp Tools/pynche/README Tools/pynche/README.pynche
+mv Tools/pynche/README Tools/pynche/README.pynche
 
 #gettext
 install -m755  Tools/i18n/pygettext.py %{buildroot}%{_bindir}/
@@ -1081,7 +1562,6 @@ mv pygettext.py pygettext%{__python_ver}.py
 mv msgfmt.py msgfmt%{__python_ver}.py
 mv smtpd.py smtpd%{__python_ver}.py
 mv pydoc pydoc%{__python_ver}
-mv 2to3 %{__python_ver}to3
 popd
 %endif
 
@@ -1097,7 +1577,7 @@ install -d %{buildroot}/usr/lib/python%{pybasever}/site-packages
 %global _pyconfig32_h pyconfig-32.h
 %global _pyconfig64_h pyconfig-64.h
 
-%ifarch ppc64 s390x x86_64 ia64 alpha sparc64
+%ifarch %{power64} s390x x86_64 ia64 alpha sparc64 aarch64
 %global _pyconfig_h %{_pyconfig64_h}
 %else
 %global _pyconfig_h %{_pyconfig32_h}
@@ -1139,8 +1619,8 @@ sed -i -e "s/'pyconfig.h'/'%{_pyconfig_h}'/" \
 
 # Install macros for rpm:
 %if %{main_python}
-mkdir -p %{buildroot}/%{_sysconfdir}/rpm
-install -m 644 %{SOURCE6} %{buildroot}/%{_sysconfdir}/rpm
+mkdir -p %{buildroot}/%{_rpmconfigdir}/macros.d/
+install -m 644 %{SOURCE6} %{buildroot}/%{_rpmconfigdir}/macros.d/
 %endif
 
 # Ensure that the curses module was linked against libncursesw.so, rather than
@@ -1156,7 +1636,7 @@ for Module in %{buildroot}/%{dynload_dir}/*.so ; do
     *_d.so)
         ldd $Module | grep %{py_INSTSONAME_optimized} &&
             (echo Debug module $Module linked against optimized %{py_INSTSONAME_optimized} ; exit 1)
-            
+
         ;;
     *)
         ldd $Module | grep %{py_INSTSONAME_debug} &&
@@ -1164,10 +1644,6 @@ for Module in %{buildroot}/%{dynload_dir}/*.so ; do
         ;;
     esac
 done
-
-# fix strip errors on read only .so files
-find %{buildroot}/%{dynload_dir} -name \*.so -a -not -perm -u=w -exec chmod -v u+w {} \;
-find %{buildroot}/%{_libdir} -name libpython\*.so\* -a -not -perm -u=w -exec chmod -v u+w {} \;
 
 # create pkgconfig alias
 ln -s python-%{pybasever}.pc %{buildroot}%{_libdir}/pkgconfig/python%{pybasever}.pc
@@ -1179,7 +1655,7 @@ ln -s python-%{pybasever}.pc %{buildroot}%{_libdir}/pkgconfig/python%{pybasever}
 # Install a tapset for this libpython into tapsetdir, fixing up the path to the
 # library:
 mkdir -p %{buildroot}%{tapsetdir}
-%ifarch ppc64 s390x x86_64 ia64 alpha sparc64
+%ifarch %{power64} s390x x86_64 ia64 alpha sparc64 aarch64
 %global libpython_stp_optimized libpython%{pybasever}-64.stp
 %global libpython_stp_debug     libpython%{pybasever}-debug-64.stp
 %else
@@ -1207,6 +1683,14 @@ ln %{buildroot}%{_bindir}/python%{pybasever} %{buildroot}%{_bindir}/%{python}
 sed -i -e 's|/usr/bin/env python$|/usr/bin/env python%{pybasever}|' %{buildroot}%{_bindir}/*.py
 %endif
 
+# Make library-files user writable
+chmod 755 %{buildroot}%{dynload_dir}/*.so
+chmod 755 %{buildroot}%{_libdir}/libpython%{pybasever}.so.1.0
+%if 0%{?with_debug_build}
+chmod 755 %{buildroot}%{_libdir}/libpython%{pybasever}_d.so.1.0
+%endif
+
+
 # ======================================================
 # Running the upstream test suite
 # ======================================================
@@ -1220,240 +1704,6 @@ CheckPython() {
 
   echo STARTING: CHECKING OF PYTHON FOR CONFIGURATION: $ConfName
 
-  # Notes about disabled tests:
-  #
-  # test_argparse:
-  #   fails when in a full build, but works when run standalone; seems to be
-  #   http://bugs.python.org/issue9553 (needs COLUMNS=80 in the environment)
-  #
-  # test_distutils:
-  #   fails with
-  #      /usr/bin/ld: cannot find -lpython2.7
-  #   in: test_build_ext (distutils.tests.test_build_ext.BuildExtTestCase)
-  #       test_get_outputs (distutils.tests.test_build_ext.BuildExtTestCase)
-  #
-  # test_dl: 
-  #   fails with:
-  #     <type 'exceptions.SystemError'>: module dl requires sizeof(int) ==
-  #     sizeof(long) == sizeof(char*)
-  #   on 64-bit builds, and the module is deprecated in favour of ctypes
-  #
-  # test_gdb:
-  #   very dependent on GCC version
-  #
-  # test_http*
-  #   I've seen occasional hangs in some http tests when running the test suite
-  #   inside Koji on Python 3.  For that reason I exclude them
-  #
-  # test_socket.py:
-  #   Can fail on Koji build with:
-  #     gaierror: [Errno -3] Temporary failure in name resolution
-  #
-  # test_urllib2
-  #   Can fail on Koji build with:
-  #     gaierror: [Errno -3] Temporary failure in name resolution
-  #
-  #
-  ###########################################################################
-  # TO BE INVESTIGATED:
-  ###########################################################################
-  # 
-  # test_file:
-  #   Fails in Koji with:
-  #  ======================================================================
-  #  FAIL: testStdin (test.test_file.COtherFileTests)
-  #  ----------------------------------------------------------------------
-  #  Traceback (most recent call last):
-  #    File "/builddir/build/BUILD/Python-2.7/Lib/test/test_file.py", line 160, in testStdin
-  #      self.assertRaises((IOError, ValueError), sys.stdin.seek, -1)
-  #  AssertionError: (<type 'exceptions.IOError'>, <type 'exceptions.ValueError'>) not raised
-  #  ======================================================================
-  #  FAIL: testStdin (test.test_file.PyOtherFileTests)
-  #  ----------------------------------------------------------------------
-  #  Traceback (most recent call last):
-  #    File "/builddir/build/BUILD/Python-2.7/Lib/test/test_file.py", line 160, in testStdin
-  #      self.assertRaises((IOError, ValueError), sys.stdin.seek, -1)
-  #  AssertionError: (<type 'exceptions.IOError'>, <type 'exceptions.ValueError'>) not raised
-  #  ----------------------------------------------------------------------
-  #
-  # test_file2k:
-  #   Fails in Koji on with:
-  #  ======================================================================
-  #  FAIL: testStdin (test.test_file2k.OtherFileTests)
-  #  ----------------------------------------------------------------------
-  #  Traceback (most recent call last):
-  #    File "/builddir/build/BUILD/Python-2.7/Lib/test/test_file2k.py", line 211, in testStdin
-  #      self.assertRaises(IOError, sys.stdin.seek, -1)
-  #  AssertionError: IOError not raised
-  #  ----------------------------------------------------------------------
-  #
-  # test_openpty:
-  #   Fails in Koji, possibly due to a mock issue (rhbz#714627)
-  #  ======================================================================
-  #  ERROR: test (test.test_openpty.OpenptyTest)
-  #  ----------------------------------------------------------------------
-  #  Traceback (most recent call last):
-  #    File "/builddir/build/BUILD/Python-2.7.2/Lib/test/test_openpty.py", line 12, in test
-  #      master, slave = os.openpty()
-  #  OSError: [Errno 2] No such file or directory
-  #  ----------------------------------------------------------------------
-  #
-  # test_pty:
-  #   Fails in Koji, possibly due to a mock issue (rhbz#714627)
-  #  ======================================================================
-  #  ERROR: test_fork (test.test_pty.PtyTest)
-  #  ----------------------------------------------------------------------
-  #  Traceback (most recent call last):
-  #    File "/builddir/build/BUILD/Python-2.7.2/Lib/test/test_pty.py", line 114, in test_fork
-  #      pid, master_fd = pty.fork()
-  #    File "/builddir/build/BUILD/Python-2.7.2/Lib/pty.py", line 107, in fork
-  #      master_fd, slave_fd = openpty()
-  #    File "/builddir/build/BUILD/Python-2.7.2/Lib/pty.py", line 29, in openpty
-  #      master_fd, slave_name = _open_terminal()
-  #    File "/builddir/build/BUILD/Python-2.7.2/Lib/pty.py", line 70, in _open_terminal
-  #      raise os.error, 'out of pty devices'
-  #  OSError: out of pty devices
-  #  ----------------------------------------------------------------------
-  #
-  # test_subprocess:
-  #    Fails in Koji with:
-  #  ======================================================================
-  #  ERROR: test_leaking_fds_on_error (test.test_subprocess.ProcessTestCase)
-  #  ----------------------------------------------------------------------
-  #  Traceback (most recent call last):
-  #    File "/builddir/build/BUILD/Python-2.7/Lib/test/test_subprocess.py", line 534, in test_leaking_fds_on_error
-  #      raise c.exception
-  #  OSError: [Errno 13] Permission denied
-  #  ======================================================================
-  #  ERROR: test_leaking_fds_on_error (test.test_subprocess.ProcessTestCaseNoPoll)
-  #  ----------------------------------------------------------------------
-  #  Traceback (most recent call last):
-  #    File "/builddir/build/BUILD/Python-2.7/Lib/test/test_subprocess.py", line 534, in test_leaking_fds_on_error
-  #      raise c.exception
-  #  OSError: [Errno 13] Permission denied
-  #  ----------------------------------------------------------------------
-  #
-  EXCLUDED_TESTS="test_argparse \
-      test_distutils \
-      test_dl \
-      test_gdb \
-      test_http_cookies \
-      test_httplib \
-      test_socket \
-      test_urllib2 \
-      test_file \
-      test_file2k \
-      test_openpty \
-      test_pty \
-      test_subprocess \
-  %{nil}"
-
-  #
-  # Additional architecture-specific test exclusions:
-  #
-
-  # ARM-specific test exclusions (see rhbz#706253):
-  # test_float:
-  #   This is upstream bug: http://bugs.python.org/issue8265
-  #  ======================================================================
-  #  FAIL: test_from_hex (test.test_float.HexFloatTestCase)
-  #  ----------------------------------------------------------------------
-  #  Traceback (most recent call last):
-  #    File "/builddir/build/BUILD/Python-2.7/Lib/test/test_float.py", line 1204, in test_from_hex
-  #      self.identical(fromHex('0x0.ffffffffffffd6p-1022'), MIN-3*TINY)
-  #    File "/builddir/build/BUILD/Python-2.7/Lib/test/test_float.py", line 914, in identical
-  #      self.fail('%r not identical to %r' % (x, y))
-  #  AssertionError: 2.2250738585072e-308 not identical to 2.2250738585071984e-308
-  #  ----------------------------------------------------------------------
-%ifarch %{arm}
-  EXCLUDED_TESTS="$EXCLUDED_TESTS \
-      test_float \
-  %{nil}"
-%endif
-
-
-  # Sparc-specific test exclusions (see rhbz#711584):
-  # test_ctypes:
-  #   This is upstream bug: http://bugs.python.org/issue8314
-  #   which appears to be a libffi bug
-  #  ======================================================================
-  #  FAIL: test_ulonglong (ctypes.test.test_callbacks.Callbacks)
-  #  ----------------------------------------------------------------------
-  #  Traceback (most recent call last):
-  #    File "/builddir/build/BUILD/Python-2.7.1/Lib/ctypes/test/test_callbacks.py",
-  #  line 72, in test_ulonglong
-  #      self.check_type(c_ulonglong, 10955412242170339782)
-  #    File "/builddir/build/BUILD/Python-2.7.1/Lib/ctypes/test/test_callbacks.py",
-  #  line 31, in check_type
-  #      self.assertEqual(result, arg)
-  #  AssertionError: 10955412241121898851L != 10955412242170339782L
-  #  ----------------------------------------------------------------------
-%ifarch %{sparc}
-  EXCLUDED_TESTS="$EXCLUDED_TESTS \
-      test_ctypes \
-  %{nil}"
-%endif
-
-  # Debug build shows some additional failures (to be investigated):
-  #
-  # test_gc:
-  #  ======================================================================
-  #  FAIL: test_newinstance (__main__.GCTests)
-  #  ----------------------------------------------------------------------
-  #  Traceback (most recent call last):
-  #    File "Lib/test/test_gc.py", line 105, in test_newinstance
-  #      self.assertNotEqual(gc.collect(), 0)
-  #  AssertionError: 0 == 0
-  #  
-  #  ----------------------------------------------------------------------
-  #
-  # test_sys:
-  #  ======================================================================
-  #  FAIL: test_objecttypes (__main__.SizeofTest)
-  #  ----------------------------------------------------------------------
-  #  Traceback (most recent call last):
-  #    File "Lib/test/test_sys.py", line 739, in test_objecttypes
-  #      check(newstyleclass, s)
-  #    File "Lib/test/test_sys.py", line 510, in check_sizeof
-  #      self.assertEqual(result, size, msg)
-  #  AssertionError: wrong size for <type 'type'>: got 960, expected 920
-  #  
-  #  ----------------------------------------------------------------------
-  #  which is this code:
-  #          # type
-  #          # (PyTypeObject + PyNumberMethods +  PyMappingMethods +
-  #          #  PySequenceMethods + PyBufferProcs)
-  #          s = size(vh + 'P2P15Pl4PP9PP11PI') + size('41P 10P 3P 6P')
-  #          class newstyleclass(object):
-  #              pass
-  #          check(newstyleclass, s)
-  #  
-  # test_weakref:
-  #  ======================================================================
-  #  FAIL: test_callback_in_cycle_resurrection (__main__.ReferencesTestCase)
-  #  ----------------------------------------------------------------------
-  #  Traceback (most recent call last):
-  #    File "Lib/test/test_weakref.py", line 591, in test_callback_in_cycle_resurrection
-  #      self.assertEqual(alist, ["C went away"])
-  #  AssertionError: Lists differ: [] != ['C went away']
-  #  
-  #  Second list contains 1 additional elements.
-  #  First extra element 0:
-  #  C went away
-  #  
-  #  - []
-  #  + ['C went away']
-  #  
-  #  ----------------------------------------------------------------------
-  #
-  if [ "$ConfName" = "debug"  ] ; then
-    EXCLUDED_TESTS="$EXCLUDED_TESTS \
-      test_gc \
-      test_sys \
-      test_weakref \
-    %{nil}"
-  fi
-  
   # Note that we're running the tests using the version of the code in the
   # builddir, not in the buildroot.
 
@@ -1469,8 +1719,11 @@ CheckPython() {
   fi
 %endif
 
-  # Actually invoke regrtest.py:
-  EXTRATESTOPTS="$EXTRATESTOPTS -x $EXCLUDED_TESTS" make test
+  # Run the upstream test suite, setting "WITHIN_PYTHON_RPM_BUILD" so that the
+  # our non-standard decorators take effect on the relevant tests:
+  #   @unittest._skipInRpmBuild(reason)
+  #   @unittest._expectedFailureInRpmBuild
+  WITHIN_PYTHON_RPM_BUILD= EXTRATESTOPTS="$EXTRATESTOPTS" make test
 
   popd
 
@@ -1478,7 +1731,8 @@ CheckPython() {
 
 }
 
-%if ! 0%{?_skip_check}
+%if 0%{run_selftest_suite}
+
 # Check each of the configurations:
 %if 0%{?with_debug_build}
 CheckPython \
@@ -1488,7 +1742,9 @@ CheckPython \
 CheckPython \
   optimized \
   python%{pybasever}
-%endif
+
+%endif # run_selftest_suite
+
 
 # ======================================================
 # Cleaning up
@@ -1510,7 +1766,9 @@ rm -fr %{buildroot}
 
 %files
 %defattr(-, root, root, -)
-%doc LICENSE README
+%{!?_licensedir:%global license %%doc}
+%license LICENSE
+%doc README
 %{_bindir}/pydoc*
 %{_bindir}/%{python}
 %if %{main_python}
@@ -1523,7 +1781,9 @@ rm -fr %{buildroot}
 
 %files libs
 %defattr(-,root,root,-)
-%doc LICENSE README
+%{!?_licensedir:%global license %%doc}
+%license LICENSE
+%doc README
 %dir %{pylibdir}
 %dir %{dynload_dir}
 %{dynload_dir}/Python-%{version}-py%{pybasever}.egg-info
@@ -1549,13 +1809,9 @@ rm -fr %{buildroot}
 %{dynload_dir}/_json.so
 %{dynload_dir}/_localemodule.so
 %{dynload_dir}/_lsprof.so
-%{dynload_dir}/_md5module.so
 %{dynload_dir}/_multibytecodecmodule.so
 %{dynload_dir}/_multiprocessing.so
 %{dynload_dir}/_randommodule.so
-%{dynload_dir}/_sha256module.so
-%{dynload_dir}/_sha512module.so
-%{dynload_dir}/_shamodule.so
 %{dynload_dir}/_socketmodule.so
 %{dynload_dir}/_sqlite3.so
 %{dynload_dir}/_ssl.so
@@ -1567,13 +1823,15 @@ rm -fr %{buildroot}
 %{dynload_dir}/cPickle.so
 %{dynload_dir}/cStringIO.so
 %{dynload_dir}/cmathmodule.so
-%{dynload_dir}/cryptmodule.so
+%{dynload_dir}/_cryptmodule.so
 %{dynload_dir}/datetime.so
 %{dynload_dir}/dbm.so
 %{dynload_dir}/dlmodule.so
 %{dynload_dir}/fcntlmodule.so
 %{dynload_dir}/future_builtins.so
+%if %{with_gdbm}
 %{dynload_dir}/gdbmmodule.so
+%endif
 %{dynload_dir}/grpmodule.so
 %{dynload_dir}/imageop.so
 %{dynload_dir}/itertoolsmodule.so
@@ -1625,6 +1883,7 @@ rm -fr %{buildroot}
 %dir %{pylibdir}/json
 %{pylibdir}/json/*.py*
 %{pylibdir}/lib2to3
+%exclude %{pylibdir}/lib2to3/tests
 %{pylibdir}/logging
 %{pylibdir}/multiprocessing
 %{pylibdir}/plat-linux2
@@ -1678,7 +1937,7 @@ rm -fr %{buildroot}
 %{_bindir}/python%{pybasever}-config
 %{_libdir}/libpython%{pybasever}.so
 %if %{main_python}
-%config(noreplace) %{_sysconfdir}/rpm/macros.python2
+%{_rpmconfigdir}/macros.d/macros.python2
 %endif
 
 %files tools
@@ -1686,11 +1945,7 @@ rm -fr %{buildroot}
 %doc Tools/pynche/README.pynche
 %{site_packages}/pynche
 %{_bindir}/smtpd*.py*
-%if %{main_python}
 %{_bindir}/2to3*
-%else
-%{_bindir}/%{__python_ver}to3
-%endif
 %{_bindir}/idle*
 %{_bindir}/pynche*
 %{_bindir}/pygettext*.py*
@@ -1715,6 +1970,7 @@ rm -fr %{buildroot}
 %{pylibdir}/distutils/tests
 %{pylibdir}/email/test
 %{pylibdir}/json/tests
+%{pylibdir}/lib2to3/tests
 %{pylibdir}/sqlite3/test
 %{pylibdir}/test/*
 # These two are shipped in the main subpackage:
@@ -1765,13 +2021,9 @@ rm -fr %{buildroot}
 %{dynload_dir}/_json_d.so
 %{dynload_dir}/_localemodule_d.so
 %{dynload_dir}/_lsprof_d.so
-%{dynload_dir}/_md5module_d.so
 %{dynload_dir}/_multibytecodecmodule_d.so
 %{dynload_dir}/_multiprocessing_d.so
 %{dynload_dir}/_randommodule_d.so
-%{dynload_dir}/_sha256module_d.so
-%{dynload_dir}/_sha512module_d.so
-%{dynload_dir}/_shamodule_d.so
 %{dynload_dir}/_socketmodule_d.so
 %{dynload_dir}/_sqlite3_d.so
 %{dynload_dir}/_ssl_d.so
@@ -1783,13 +2035,15 @@ rm -fr %{buildroot}
 %{dynload_dir}/cPickle_d.so
 %{dynload_dir}/cStringIO_d.so
 %{dynload_dir}/cmathmodule_d.so
-%{dynload_dir}/cryptmodule_d.so
+%{dynload_dir}/_cryptmodule_d.so
 %{dynload_dir}/datetime_d.so
 %{dynload_dir}/dbm_d.so
 %{dynload_dir}/dlmodule_d.so
 %{dynload_dir}/fcntlmodule_d.so
 %{dynload_dir}/future_builtins_d.so
+%if %{with_gdbm}
 %{dynload_dir}/gdbmmodule_d.so
+%endif
 %{dynload_dir}/grpmodule_d.so
 %{dynload_dir}/imageop_d.so
 %{dynload_dir}/itertoolsmodule_d.so
@@ -1825,10 +2079,14 @@ rm -fr %{buildroot}
 
 # Analog of the -devel subpackage's files:
 %dir %{pylibdir}/config-debug
+%{_libdir}/pkgconfig/python-%{pybasever}-debug.pc
+%{_libdir}/pkgconfig/python-debug.pc
+%{_libdir}/pkgconfig/python2-debug.pc
 %{pylibdir}/config-debug/*
 %{_includedir}/python%{pybasever}-debug/*.h
 %if %{main_python}
 %{_bindir}/python-debug-config
+%{_bindir}/python2-debug-config
 %endif
 %{_bindir}/python%{pybasever}-debug-config
 %{_libdir}/libpython%{pybasever}_d.so
@@ -1848,18 +2106,17 @@ rm -fr %{buildroot}
 %exclude /usr/lib/debug/usr/*/*
 %endif # with_debug_build
 
-
 # We put the debug-gdb.py file inside /usr/lib/debug to avoid noise from
 # ldconfig (rhbz:562980).
-# 
-# The /usr/lib/rpm/redhat/macros defines %__debug_package to use
+#
+# The /usr/lib/rpm/redhat/macros defines the __debug_package macro to use
 # debugfiles.list, and it appears that everything below /usr/lib/debug and
 # (/usr/src/debug) gets added to this file (via LISTFILES) in
 # /usr/lib/rpm/find-debuginfo.sh
-# 
+#
 # Hence by installing it below /usr/lib/debug we ensure it is added to the
 # -debuginfo subpackage
-# (if it doesn't, then the rpmbuild ought to fail since the debug-gdb.py 
+# (if it doesn't, then the rpmbuild ought to fail since the debug-gdb.py
 # payload file would be unpackaged)
 
 
@@ -1868,53 +2125,326 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
-* Fri May 18 2012 Cristian Gafton <gafton@amazon.com>
-- import source package F16/python-2.7.3-1.fc16
-- rebase to 2.7.3 for security updates and bug fixes.
+* Thu Aug 21 2014 Robert Kuska <rkuska@redhat.com> - 2.7.8-6
+- Update patch 196 (ssl backport)
 
-* Fri Apr 13 2012 David Malcolm <dmalcolm@redhat.com> - 2.7.3-1
-- 2.7.3; refresh patches 102 (lib64) and 112 (debug build); revise patch 127
-(test_structmember); drop upstream patches 11 (tolower) and 115 (pydoc
-robustness); add python2.pc to python-devel; regenerate the autotool
-intermediates patch (patch 300)
+* Tue Aug 19 2014 Robert Kuska <rkuska@redhat.com> - 2.7.8-5
+- Backport ssl module from python3
 
-* Mon Mar 26 2012 Cristian Gafton <gafton@amazon.com>
-- rename 2to3 to avoid conflict with main python
+* Sun Aug 17 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.7.8-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
 
-* Tue Mar 6 2012 Cristian Gafton <gafton@amazon.com>
-- alias python-M.m.pc to pythonM.m.pc for pkgconfig files
-- exclude unversioned python.pc from the devel package
+* Thu Jul 31 2014 Tom Callaway <spot@fedoraproject.org> - 2.7.8-3
+- fix license handling
 
-* Mon Feb 20 2012 Andrew Jorgensen <ajorgens@amazon.com>
-- Conditionalize dependency on tkinter
+* Fri Jul 18 2014 Robert Kuska <rkuska@redhat.com> - 2.7.8-2
+- Enable SSLv2 and SSLv3 when SSLv23_method is used in ssl
 
-* Sat Feb 18 2012 Cristian Gafton <gafton@amazon.com>
-- re-enable tests during build
-- only install the macros.python2 file if building as the main python on the system
-- fix /usr/bin/strip complaining about read only .so files....
-- fix for building as a non-main python
-- fix attempts by upstream to redefine macros after they're used by rpm to create the script for building....
-- disable forced Berkeley DB version require update
-- add support for skipping make check for devel builds
-- conditionalize X11/Tk/tix support
+* Mon Jul 14 2014 Robert Kuska <rkuska@redhat.com> - 2.7.8-1
+- Update to 2.7.8
 
-* Fri Feb 17 2012 Cristian Gafton <gafton@amazon.com>
-- setup for building as an alternate
-- import source package F16/python-2.7.2-5.2.fc16
+* Fri Jul 11 2014 Dan Horák <dan[at]danny.cz> - 2.7.7-3
+- rebuilt for updated libffi ABI on ppc64le
 
-* Wed Oct 26 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.7.2-5.2
+* Sat Jun  7 2014 Peter Robinson <pbrobinson@fedoraproject.org> 2.7.7-2
+- aarch64 has valgrind, just list those that don't support it
+
+* Wed Jun 04 2014 Matej Stuchlik <mstuchli@redhat.com> - 2.7.7-1
+- Update to 2.7.7
+- Refreshed patches: #16, #112, #138, #147, #157, #166, #173, #5000
+- Dropped patches: #190, #192, #194
+
+* Tue Jun 03 2014 Dan Horák <dan[at]danny.cz> - 2.7.6-9
+- update the arch list where valgrind exists - %%power64 includes also
+    ppc64le which is not supported yet
+
+* Wed May 21 2014 Jaroslav Škarvada <jskarvad@redhat.com> - 2.7.6-8
+- Rebuilt for https://fedoraproject.org/wiki/Changes/f21tcl86
+
+* Fri May 09 2014 Tomas Radej <tradej@redhat.com> - 2.7.6-7
+- Fixed obsoletes on ordereddict (bz #1095434)
+
+* Mon Apr 14 2014 Tomas Radej <tradej@redhat.com> - 2.7.6-6
+- Obsoletes python-ordereddict (bz #1085593, not precisely 1:1 replacement)
+
+* Mon Apr 07 2014 Bohuslav Kabrda <bkabrda@redhat.com> - 2.7.6-5
+- Fix test failure with SQLite > 3.8.4.
+- Obsolete/Provide python-unittest2
+Related: rhbz#1060426
+
+* Wed Feb 19 2014 Bohuslav Kabrda <bkabrda@redhat.com> - 2.7.6-4
+- Enable loading sqlite extensions.
+Resolves: rhbz#1066708
+
+* Mon Feb 10 2014 Tomas Radej <tradej@redhat.com> - 2.7.6-3
+- Fixed buffer overflow (upstream patch)
+Resolves: rhbz#1062375
+
+* Tue Feb 04 2014 Bohuslav Kabrda <bkabrda@redhat.com> - 2.7.6-2
+- Install macros in _rpmconfigdir.
+
+* Wed Jan 29 2014 Tomas Radej <tradej@redhat.com> - 2.7.6-1
+- Updated to v2.7.6
+- Freshened patches 102, 111, 112, 136, and 142
+- Dropped patches 186, 188 (both fixed upstream)
+
+* Wed Jan 15 2014 Matej Stuchlik <mstuchli@redhat.com> - 2.7.5-11
+- Make library-files user writable to get rid of
+  Permission Denied in buildlog from debuginfo-packaging
+
+* Tue Jan 14 2014 Dennis Gilmore <dennis@ausil.us> - 2.7.5-10
+- enable valgrind support on 32 bit arm
+
+* Tue Nov 12 2013 Tomas Radej <tradej@redhat.com> - 2.7.5-9
+- Import get_python_version in bdist_rpm
+Resolves: rhbz#1029082
+
+* Tue Oct 08 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 2.7.5-8
+- Fix processing gdb py-bt command in eval calls.
+Resolves: rhbz#1008154
+
+* Tue Sep 03 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 2.7.5-7
+- Removed ancient Obsolete: python-sqlite2.
+
+* Mon Aug 26 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 2.7.5-6
+- Sync back/renumber patches to stay consistent with rhel.
+
+* Mon Aug 19 2013 Matej Stuchlik <mstuchli@redhat.com> - 2.7.5-5
+- Added fix for CVE-2013-4238 (rhbz#998430)
+
+* Sun Aug 04 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.7.5-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild
+
+* Mon Jul 08 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 2.7.5-3
+- Fix build with libffi containing multilib wrapper for ffi.h (rhbz#979696).
+
+* Mon Jul 08 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 2.7.5-2
+- Obsolete PyXML as requested in rhbz#981137.
+
+* Thu May 16 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 2.7.5-1
+- Updated to Python 2.7.5.
+- Refreshed patches: 0 (config), 102 (lib64), 121 (add Modules to build path),
+153 (gdb test noise)
+- Dropped patches: 126, 127 (big endian issues, both fixed upstream),
+175 (configure -Wformat, fixed upstream)
+- Synced patch numbers with python3.spec.
+
+* Tue May 14 2013 David Malcolm <dmalcolm@redhat.com> - 2.7.4-5
+- fix multilib issue in python-tools due to /usr/bin/pynche (source 7;
+rhbz#831437)
+
+* Thu May 02 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 2.7.4-4
+- Add patch that enables building on ppc64p7.
+
+* Mon Apr 22 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 2.7.4-3
+- Allow arbitrary timeout in Condition.wait (rhbz#917709).
+
+* Thu Apr 11 2013 Kalev Lember <kalevlember@gmail.com> - 2.7.4-2
+- Build with libdb 5.3 instead of libdb4
+- Refreshed patches: 0 (config), 102 (lib64)
+- Dropped patches: 54 (db4 version), 159 (db4 include path adjustment)
+
+* Mon Apr 08 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 2.7.4-1
+- Updated to Python 2.7.4.
+- Refreshed patches: 0 (config), 7 (sqlite encoding), 16 (rpath in config),
+55 (systemtap), 111 (no static lib), 112 (debug build), 113 (more
+configuration flags), 130 (add extension to python config), 134 (fix
+COUNT_ALLOCS in test_sys), 146 (haslib FIPS), 147 (add debug malloc stats),
+153 (fix gdb test noise), 157 (uid, gid overflow - fixed upstream, just
+keeping few more downstream tests), 165 (crypt module salt backport),
+175 (fix configure Wformat), 5000 (regenerated autotooling patch)
+- Dropped patches: 101 (lib64 regex; merged upstream), 171 (exception on
+missing /dev/urandom; merged upstream), 172 (poll for multiprocessing socket
+connection; merged upstream)
+
+* Mon Mar 25 2013 David Malcolm <dmalcolm@redhat.com> - 2.7.3-35
+- fix gcc 4.8 incompatibility (rhbz#927358); regenerate autotool intermediates
+
+* Wed Mar  6 2013 David Malcolm <dmalcolm@redhat.com> - 2.7.3-34
+- restrict scope of workaround for cmpi-bindings issue to avoid breaking
+in-tree running of test_sys and test_subprocess (rhbz#817554)
+
+* Wed Mar  6 2013 David Malcolm <dmalcolm@redhat.com> - 2.7.3-33
+- add workaround for cmpi-bindings issue (rhbz#817554)
+
+* Mon Mar  4 2013 David Malcolm <dmalcolm@redhat.com> - 2.7.3-32
+- add workaround for ENOPROTOOPT seen running selftests in Koji
+(rhbz#913732)
+
+* Mon Mar  4 2013 David Malcolm <dmalcolm@redhat.com> - 2.7.3-31
+- remove config flag from /etc/rpm/macros.python2
+
+* Fri Feb 22 2013 David Malcolm <dmalcolm@redhat.com> - 2.7.3-30
+- remove __debug_package macro from comment
+
+* Fri Feb 22 2013 David Malcolm <dmalcolm@redhat.com> - 2.7.3-29
+- drop -b from application of patch 157 (uid/gid overflows)
+
+* Fri Feb 22 2013 David Malcolm <dmalcolm@redhat.com> - 2.7.3-28
+- fix bogus dates in changelog
+
+* Thu Feb 21 2013 David Malcolm <dmalcolm@redhat.com> - 2.7.3-27
+- port _multiprocessing.Connection.poll() to use the "poll" syscall, rather
+than "select", allowing large numbers of subprocesses (patch 172;
+rhbz#849992)
+
+* Thu Feb 21 2013 David Malcolm <dmalcolm@redhat.com> - 2.7.3-26
+- raise correct exception in os.urandom() when /dev/urandom is missing
+(patch 171; rhbz#907383)
+
+* Wed Feb 20 2013 David Malcolm <dmalcolm@redhat.com> - 2.7.3-25
+- in debug builds, try to print repr() when a C-level assert fails in the
+garbage collector (typically indicating a reference-counting error somewhere
+else e.g in an extension module) (patch 170; rhbz#850013)
+
+* Wed Feb 20 2013 David Malcolm <dmalcolm@redhat.com> - 2.7.3-24
+- move lib2to3/tests from python-libs to python-test (rhbz#850056)
+
+* Wed Feb 20 2013 David Malcolm <dmalcolm@redhat.com> - 2.7.3-23
+- use SHA-256 rather than implicitly using MD5 within the challenge handling
+in multiprocessing.connection (patch 169; rhbz#879695)
+
+* Wed Feb 20 2013 David Malcolm <dmalcolm@redhat.com> - 2.7.3-22
+- fix a problem with distutils.sysconfig when CFLAGS is defined in the
+environment (patch 168; rhbz#849994)
+
+* Wed Feb 20 2013 David Malcolm <dmalcolm@redhat.com> - 2.7.3-21
+- don't run any stack navigation tests in test_gdb for optimized builds
+(patch 167; rhbz#912025)
+
+* Wed Feb 20 2013 David Malcolm <dmalcolm@redhat.com> - 2.7.3-20
+- s/cryptmodule/_cryptmodule/ in package payload (rhbz#835021)
+
+* Tue Feb 19 2013 David Malcolm <dmalcolm@redhat.com> - 2.7.3-19
+- bulletproof the gdb debugging hooks against a failure seen in ARM builds
+(patch 166; rhbz#912025)
+- re-enable make check on ARM (rhbz#912025)
+
+* Tue Feb 19 2013 David Malcolm <dmalcolm@redhat.com> - 2.7.3-18
+- backport pre-canned ways of salting a password to the "crypt" module from 3.3
+(rhbz#835021)
+
+* Tue Feb 19 2013 David Malcolm <dmalcolm@redhat.com> - 2.7.3-17
+- remove "_default_patch_fuzz" directive to avoid patches being silently
+misapplied (refresh patch 1, patch 101, patch 102, patch 111, patch 121,
+patch 158; rename patch 1, patch 101, patch 121; apply patch 54 before the
+lib64 patches to avoid fuzz problems caused by the conditional application
+of the lib64 patches)
+
+* Mon Feb 18 2013 Peter Robinson <pbrobinson@fedoraproject.org> 2.7.3-16
+- disable make check on ARM for the moment until 912025 is fixed
+
+* Mon Feb 11 2013 David Malcolm <dmalcolm@redhat.com> - 2.7.3-15
+- add aarch64 (rhbz#909783)
+
+* Thu Nov 29 2012 David Malcolm <dmalcolm@redhat.com> - 2.7.3-14
+- add BR on bluez-libs-devel (rhbz#879720)
+
+* Thu Aug  9 2012 David Malcolm <dmalcolm@redhat.com> - 2.7.3-13
+- remove f18 conditional from patch 159
+
+* Fri Jul 27 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.7.3-12
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
+
+* Tue Jul 17 2012 Bohuslav Kabrda <bkabrda@redhat.com> - 2.7.3-11
+- fix memory leak in module _hashlib (patch 158, rhbz#836285)
+- fix db4 include path for libdb4 package (f18 and above) (patch 159)
+
+* Tue Jun 26 2012 David Malcolm <dmalcolm@redhat.com> - 2.7.3-10
+- fix missing include in uid/gid handling patch (patch 157; rhbz#830405)
+
+* Fri Jun 22 2012 David Malcolm <dmalcolm@redhat.com> - 2.7.3-9
+- use rpm macro for power64 (rhbz#834653)
+
+* Tue May 15 2012 David Malcolm <dmalcolm@redhat.com> - 2.7.3-8
+- update uid/gid handling to avoid int overflows seen with uid/gid
+values >= 2^31 on 32-bit architectures (patch 157; rhbz#697470)
+
+* Fri May  4 2012 David Malcolm <dmalcolm@redhat.com> - 2.7.3-7
+- renumber autotools patch from 300 to 5000
+- specfile cleanups
+
+* Mon Apr 30 2012 David Malcolm <dmalcolm@redhat.com> - 2.7.3-6
+- try again to fix test_gdb.py (patch 156; rhbz#817072)
+
+* Mon Apr 30 2012 David Malcolm <dmalcolm@redhat.com> - 2.7.3-5
+- fix test_gdb.py (patch 156; rhbz#817072)
+
+* Fri Apr 20 2012 David Malcolm <dmalcolm@redhat.com> - 2.7.3-4
+- avoid allocating thunks in ctypes unless absolutely necessary, to avoid
+generating SELinux denials on "import ctypes" and "import uuid" when embedding
+Python within httpd (patch 155; rhbz#814391)
+
+* Thu Apr 19 2012 David Malcolm <dmalcolm@redhat.com> - 2.7.3-3
+- add explicit version requirements on expat to avoid linkage problems with
+XML_SetHashSalt
+
+* Wed Apr 18 2012 David Malcolm <dmalcolm@redhat.com> - 2.7.3-2
+- fix -config symlinks (patch 112; rhbz#813836)
+
+* Wed Apr 11 2012 David Malcolm <dmalcolm@redhat.com> - 2.7.3-1
+- 2.7.3: refresh patch 102 (lib64); drop upstream patches 11 (ascii-to-lower),
+115 (pydoc robustness), 145 (linux2), 148 (gdbm magic values), 151 (deadlock
+in fork); refresh patch 112 (debug build); revise patch 127
+(test_structmember); fix test_gdb (patch 153); refresh patch 137 (distutils
+tests); add python2.pc to python-devel; regenerate the autotool intermediates
+patch (patch 300)
+
+* Sat Feb 25 2012 Thomas Spura <tomspur@fedoraproject.org> - 2.7.2-20
+- fix deadlock issue (#787712)
+
+* Fri Feb 17 2012 Toshio Kuratomi <toshio@fedoraproject.org> - 2.7.2-19
+- Obsolete python-sqlite2
+
+* Thu Nov 24 2011 Ville Skyttä <ville.skytta@iki.fi> - 2.7.2-18
+- Build with $RPM_LD_FLAGS (#756862).
+- Use xz-compressed source tarball.
+
+* Wed Oct 26 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.7.2-17
 - Rebuilt for glibc bug#747377
 
-* Thu Sep  1 2011 David Malcolm <dmalcolm@redhat.com> - 2.7.2-4.2
+* Fri Sep 30 2011 David Malcolm <dmalcolm@redhat.com> - 2.7.2-16
+- re-enable gdbm (patch 148; rhbz#742242)
+
+* Fri Sep 16 2011 David Malcolm <dmalcolm@redhat.com> - 2.7.2-15
+- add a sys._debugmallocstats() function (patch 147)
+
+* Wed Sep 14 2011 David Malcolm <dmalcolm@redhat.com> - 2.7.2-14
+- support OpenSSL FIPS mode in _hashlib and hashlib; don't build the _md5 and
+_sha* modules, relying on _hashlib in hashlib, and thus within md5 etc
+(rhbz#563986; patch 146)
+
+* Wed Sep 14 2011 David Malcolm <dmalcolm@redhat.com> - 2.7.2-13
+- force sys.platform to be "linux2" (patch 145)
+
+* Tue Sep 13 2011 David Malcolm <dmalcolm@redhat.com> - 2.7.2-12
+- disable gdbm module to prepare for gdbm soname bump
+
+* Mon Sep 12 2011 David Malcolm <dmalcolm@redhat.com> - 2.7.2-11
+- rename and renumber patches for consistency with python3.spec (55, 111, 113,
+114, 125, 131, 129 to 143)
+
+* Sat Sep 10 2011 David Malcolm <dmalcolm@redhat.com> - 2.7.2-10
+- rewrite of "check", introducing downstream-only hooks for skipping specific
+cases in an rpmbuild (patch 132), and fixing/skipping failing tests in a more
+fine-grained manner than before (patches 104, 133-142)
+
+* Thu Sep  1 2011 David Malcolm <dmalcolm@redhat.com> - 2.7.2-9
 - run selftests with "--verbose"
 - disable parts of test_io on ppc (rhbz#732998)
-- add --extension-suffix option to python-config (patch 130; rhbz#732808)
-- reenable and fix the --with-tsc option on ppc64, and rework it on 32-bit
-ppc to avoid aliasing violations (patch 129; rhbz#698726)
-- add rpm macros file (rhbz#731800)
 
-* Tue Aug 23 2011 David Malcolm <dmalcolm@redhat.com> - 2.7.2-4.1
+* Tue Aug 23 2011 David Malcolm <dmalcolm@redhat.com> - 2.7.2-8
+- add --extension-suffix option to python-config (patch 130; rhbz#732808)
+
+* Tue Aug 23 2011 David Malcolm <dmalcolm@redhat.com> - 2.7.2-7
+- re-enable and fix the --with-tsc option on ppc64, and rework it on 32-bit
+ppc to avoid aliasing violations (patch 129; rhbz#698726)
+
+* Tue Aug 23 2011 David Malcolm <dmalcolm@redhat.com> - 2.7.2-6
 - don't use --with-tsc on ppc64 debug builds (rhbz#698726)
+
+* Thu Aug 18 2011 David Malcolm <dmalcolm@redhat.com> - 2.7.2-5
+- add rpm macros file (rhbz#731800)
 
 * Fri Jul  8 2011 David Malcolm <dmalcolm@redhat.com> - 2.7.2-4
 - cleanup of BuildRequires; add comment headings to specfile sections
@@ -2365,7 +2895,7 @@ directories (bug 531901)
 - fix marshalling of objects in xmlrpclib (python bug #1739842)
 
 * Fri Sep 14 2007 Jeremy Katz <katzj@redhat.com> - 2.5.1-11
-- fix encoding of sqlite .py files to work around weird encoding problem 
+- fix encoding of sqlite .py files to work around weird encoding problem
   in Turkish (#283331)
 
 * Mon Sep 10 2007 Jeremy Katz <katzj@redhat.com> - 2.5.1-10
@@ -2388,7 +2918,7 @@ directories (bug 531901)
 
 * Wed Jun 27 2007 Jeremy Katz <katzj@redhat.com> - 2.5.1-4
 - fix _elementtree.so build (#245703)
-- ensure that extension modules we expect are actually built rather than 
+- ensure that extension modules we expect are actually built rather than
   having them silently fall out of the package
 
 * Tue Jun 26 2007 Jeremy Katz <katzj@redhat.com> - 2.5.1-3
@@ -2430,7 +2960,7 @@ directories (bug 531901)
 
 * Mon Dec 11 2006 Jeremy Katz <katzj@redhat.com> - 2.5.3-3
 - fix atexit traceback with failed syslog logger (#218214)
-- split libpython into python-libs subpackage for multilib apps 
+- split libpython into python-libs subpackage for multilib apps
   embedding python interpreters
 
 * Wed Dec  6 2006 Jeremy Katz <katzj@redhat.com> - 2.5.3-2
@@ -2438,14 +2968,14 @@ directories (bug 531901)
 
 * Tue Dec  5 2006 Jeremy Katz <katzj@redhat.com>
 - support db 4.5
-- obsolete python-elementtree; since it requires some code tweaks, don't 
+- obsolete python-elementtree; since it requires some code tweaks, don't
   provide it
 - obsolete old python-sqlite; provide the version that's actually included
 
 * Mon Oct 30 2006 Jeremy Katz <katzj@redhat.com>
 - fix _md5 and _sha modules (Robert Sheck)
 - no longer provide optik compat; it's been a couple of years now
-- no longer provide the old shm module; if this is still needed, let's 
+- no longer provide the old shm module; if this is still needed, let's
   build it separately
 - no longer provide japanese codecs; should be a separate package
 
@@ -2546,7 +3076,7 @@ directories (bug 531901)
 - Fix bug #169046 more correctly.
 
 * Thu Sep 22 2005 Mihai Ibanescu <misa@redhat.com> 2.4.1-7
-- Fixed bug #169046 (realpath is unsafe); thanks to 
+- Fixed bug #169046 (realpath is unsafe); thanks to
   Peter Jones <pjones@redhat.com> and Arjan van de Ven <arjanv@redhat.com> for
   diagnosing and the patch.
 
@@ -2714,10 +3244,10 @@ directories (bug 531901)
 * Mon Jun 9 2003 Elliot Lee <sopwith@redhat.com> 2.2.3-3
 - rebuilt
 
-* Wed Jun  7 2003 Mihai Ibanescu <misa@redhat.com> 2.2.3-2
+* Sat Jun  7 2003 Mihai Ibanescu <misa@redhat.com> 2.2.3-2
 - Rebuilt
 
-* Tue Jun  6 2003 Mihai Ibanescu <misa@redhat.com> 2.2.3-1
+* Fri Jun  6 2003 Mihai Ibanescu <misa@redhat.com> 2.2.3-1
 - Upgraded to 2.2.3
 
 * Wed Apr  2 2003 Mihai Ibanescu <misa@redhat.com> 2.2.2-28
@@ -2735,11 +3265,11 @@ directories (bug 531901)
 - Fixed bug #84966: path in byte-compiled code still wrong
 
 * Thu Feb 20 2003 Jeremy Katz <katzj@redhat.com> 2.2.2-23
-- ftp uri's should be able to specify being rooted at the root instead of 
+- ftp uri's should be able to specify being rooted at the root instead of
   where you login via ftp (#84692)
 
 * Mon Feb 10 2003 Mihai Ibanescu <misa@redhat.com> 2.2.2-22
-- Using newer Japanese codecs (1.4.9). Thanks to 
+- Using newer Japanese codecs (1.4.9). Thanks to
   Peter Bowen <pzb@datastacks.com> for pointing this out.
 
 * Thu Feb  6 2003 Mihai Ibanescu <misa@redhat.com> 2.2.2-21
@@ -2776,7 +3306,7 @@ directories (bug 531901)
 - pick up OpenSSL cflags and ldflags from pkgconfig if available
 
 * Thu Jan  2 2003 Jeremy Katz <katzj@redhat.com> 2.2.2-8
-- urllib2 didn't support non-anonymous ftp.  add support based on how 
+- urllib2 didn't support non-anonymous ftp.  add support based on how
   urllib did it (#80676, #78168)
 
 * Mon Dec 16 2002 Mihai Ibanescu <misa@redhat.com> 2.2.2-7
@@ -2799,7 +3329,7 @@ directories (bug 531901)
 - Fixed configuration patch to add -lcrypt when compiling cryptmodule.c
 
 2.2.2-4
-- Spec file change from Matt Wilson <msw@redhat.com> to disable linking 
+- Spec file change from Matt Wilson <msw@redhat.com> to disable linking
   with the C++ compiler.
 
 * Mon Nov 11 2002 Mihai Ibanescu <misa@redhat.com>
@@ -2883,11 +3413,11 @@ directories (bug 531901)
 - 2.2.1 - a bugfix-only release
 
 * Fri Apr 12 2002 Trond Eivind Glomsrød <teg@redhat.com> 2.2-16
-- the same, but in builddirs - this will remove them from the 
+- the same, but in builddirs - this will remove them from the
   docs package, which doesn't look in the buildroot for files.
 
 * Fri Apr 12 2002 Trond Eivind Glomsrød <teg@redhat.com> 2.2-15
-- Get rid of temporary files and .cvsignores included 
+- Get rid of temporary files and .cvsignores included
   in the tarball and make install
 
 * Fri Apr  5 2002 Trond Eivind Glomsrød <teg@redhat.com> 2.2-14
@@ -2925,7 +3455,7 @@ directories (bug 531901)
   can happen when you mix db2 and db4 in a single application)
 
 * Thu Jan 24 2002 Trond Eivind Glomsrød <teg@redhat.com> 2.2-4
-- Obsolete subpackages if necesarry 
+- Obsolete subpackages if necesarry
 - provide versioned python2
 - build with db4
 
@@ -2938,7 +3468,7 @@ directories (bug 531901)
 
 * Fri Dec 14 2001 Trond Eivind Glomsrød <teg@redhat.com> 2.2-0.11c1
 - 2.2 RC 1
-- Don't include the _tkinter module in the main package - it's 
+- Don't include the _tkinter module in the main package - it's
   already in the tkiter packace
 - Turn off the mpzmodule, something broke in the buildroot
 
@@ -3000,6 +3530,8 @@ directories (bug 531901)
 
 * Fri Dec 15 2000 Matt Wilson <msw@redhat.com>
 - added devel subpackage
+
+* Fri Dec 15 2000 Matt Wilson <msw@redhat.com>
 - modify all files to use "python2.0" as the intrepter
 - don't build the Expat bindings
 - build against db1

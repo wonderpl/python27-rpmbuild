@@ -272,7 +272,7 @@ diff -up Python-2.7.6/configure.ac.debug-build Python-2.7.6/configure.ac
 -	  BLDLIBRARY='-L. -lpython$(VERSION)'
 +	  LDLIBRARY='libpython$(VERSION)$(DEBUG_EXT).so'
 +	  BLDLIBRARY='-L. -lpython$(VERSION)$(DEBUG_EXT)'
- 	  RUNSHARED=LD_LIBRARY_PATH=`pwd`:${LD_LIBRARY_PATH}
+ 	  RUNSHARED=LD_LIBRARY_PATH=`pwd`${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
  	  case $ac_sys_system in
  	      FreeBSD*)
 @@ -1028,6 +1028,14 @@ else AC_MSG_RESULT(no); Py_DEBUG='false'
