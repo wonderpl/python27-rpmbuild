@@ -1,11 +1,12 @@
 Name: python27-matplotlib
-Version: 1.3.1
+Version: 1.4.0
 Release: 1%{?dist}
 Summary: Python plotting package
 Group: Development/Libraries
 License: Python
 URL: http://matplotlib.org
 Source0: https://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-%{version}/matplotlib-%{version}.tar.gz
+Patch1: freetype23.patch
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: python27-setuptools python27-numpy python27-pytz
@@ -25,6 +26,7 @@ errorcharts, scatterplots, etc, with just a few lines of code.
 
 %prep
 %setup -q -n matplotlib-%{version}
+%patch1 -p1
 
 %build
 CFLAGS="$RPM_OPT_FLAGS" %{__python} setup.py build

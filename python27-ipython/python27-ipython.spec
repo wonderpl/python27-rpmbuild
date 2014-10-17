@@ -1,5 +1,5 @@
 Name: python27-ipython
-Version: 0.13.1
+Version: 0.13.2
 Release: 1
 Summary: IPython: Productive Interactive Computing
 Group: Development/Libraries

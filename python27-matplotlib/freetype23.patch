@@ -1,0 +1,22 @@
+From 96a3ea27cb0525704eacbe1b483a2479cdad19dc Mon Sep 17 00:00:00 2001
+From: Michael Droettboom <mdboom@gmail.com>
+Date: Wed, 6 Aug 2014 11:45:19 -0400
+Subject: [PATCH] Reduce minimum freetype version to 2.3
+
+---
+ setupext.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/setupext.py b/setupext.py
+index da25ab8..026cdd5 100755
+--- a/setupext.py
++++ b/setupext.py
+@@ -937,7 +937,7 @@ def check(self):
+ 
+         return self._check_for_pkg_config(
+             'freetype2', 'ft2build.h',
+-            min_version='2.4', version=version)
++            min_version='2.3', version=version)
+ 
+     def add_flags(self, ext):
+         pkg_config.setup_extension(
