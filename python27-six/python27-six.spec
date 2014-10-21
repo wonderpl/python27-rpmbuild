@@ -1,5 +1,5 @@
 Name: python27-six
-Version: 1.7.3
+Version: 1.8.0
 Release: 1
 Summary: Python 2 and 3 compatibility utilities
 Group: Development/Libraries

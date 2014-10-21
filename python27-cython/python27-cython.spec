@@ -1,5 +1,5 @@
 Name: python27-cython
-Version: 0.19
+Version: 0.21
 Release: 1%{?dist}
 Summary: A language for writing Python extension modules
 Group: Development/Tools

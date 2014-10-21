@@ -1,6 +1,6 @@
 Name: python27-pytest
-Version: 2.5.2
-Release: 2
+Version: 2.6.3
+Release: 1
 Summary: Simple powerful testing with Python
 Group: Development/Libraries
 License: MIT

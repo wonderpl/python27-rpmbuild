@@ -1,6 +1,6 @@
 Name: python27-cryptography
-Version: 0.4
-Release: 2%{?dist}
+Version: 0.6.1
+Release: 1%{?dist}
 Summary: cryptography is a package which provides cryptographic recipes and primitives
 Group: Development/Libraries
 License: ASL 2.0

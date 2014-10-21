@@ -1,5 +1,5 @@
 Name: python27-boto
-Version: 2.30.0
+Version: 2.33.0
 Release: 1
 License: MIT License
 Summary: A simple lightweight interface to Amazon Web Services

@@ -1,5 +1,5 @@
 Name: python27-greenlet
-Version: 0.4.2
+Version: 0.4.4
 Release: 1%{?dist}
 Summary: Lightweight in-process concurrent programming
 Group: Development/Libraries

@@ -1,5 +1,5 @@
 Name: python27-psycopg2
-Version: 2.5.3
+Version: 2.5.4
 Release: 1%{?dist}
 Summary: Python-PostgreSQL Database Adapter
 Group: Development/Libraries

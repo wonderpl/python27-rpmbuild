@@ -1,6 +1,6 @@
 Name: python27-cffi
-Version: 0.8.2
-Release: 2%{?dist}
+Version: 0.8.6
+Release: 1%{?dist}
 Summary: Foreign Function Interface for Python calling C code
 Group: Development/Libraries
 License: MIT

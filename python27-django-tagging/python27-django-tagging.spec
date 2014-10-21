@@ -1,5 +1,5 @@
 Name: python27-django-tagging
-Version: 0.3.1
+Version: 0.3.3
 Release: 1
 Summary: Generic tagging application for Django
 Group: Development/Libraries

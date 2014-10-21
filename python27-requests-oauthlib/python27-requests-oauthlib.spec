@@ -1,5 +1,5 @@
 Name: python27-requests-oauthlib
-Version: 0.4.1
+Version: 0.4.2
 Release: 1
 Summary: OAuthlib authentication support for Requests
 Group: Development/Libraries

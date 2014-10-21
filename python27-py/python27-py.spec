@@ -1,5 +1,5 @@
 Name: python27-py
-Version: 1.4.20
+Version: 1.4.25
 Release: 1
 Summary: library with cross-python path, ini-parsing, io, code, log facilities
 Group: Development/Libraries

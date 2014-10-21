@@ -1,5 +1,5 @@
 Name: python27-urllib3
-Version: 1.8.3
+Version: 1.9.1
 Release: 1
 Summary: HTTP library with thread-safe connection pooling, file post, and more
 Group: Development/Libraries

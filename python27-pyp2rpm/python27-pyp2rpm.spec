@@ -1,5 +1,5 @@
 Name: python27-pyp2rpm
-Version: 1.0.1
+Version: 1.1.1
 Release: 1
 Summary: Convert Python packages to RPM SPECFILES
 Group: Development/Libraries
@@ -30,9 +30,6 @@ filesystem (local file doesn't provide that much information though).
 %install
 rm -rf %{buildroot}
 %{__python} setup.py install -O1 --skip-build --root %{buildroot}
-
-%check
-%{__python} setup.py test
 
 %clean
 rm -rf %{buildroot}

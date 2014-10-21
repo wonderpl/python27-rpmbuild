@@ -1,5 +1,5 @@
 Name: python27-flake8
-Version: 2.2.2
+Version: 2.2.4
 Release: 1
 Summary: the modular source code checker: pep8, pyflakes and co
 Group: Development/Libraries

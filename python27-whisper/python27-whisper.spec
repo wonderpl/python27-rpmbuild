@@ -1,11 +1,11 @@
 Name: python27-whisper
-Version: 0.9.10
+Version: 0.9.12
 Release: 1
 Summary: Simple database library for storing time-series data
 Group: Development/Libraries
 License: ASL 2.0
-URL: https://launchpad.net/graphite/
-Source0: https://github.com/downloads/graphite-project/whisper/whisper-0.9.10.tar.gz
+URL: http://graphite-project.github.com/
+Source0: https://pypi.python.org/packages/source/w/whisper/whisper-%{version}.tar.gz
 
 BuildArch: noarch
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
