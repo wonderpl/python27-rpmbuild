@@ -1,12 +1,13 @@
 Name: python27-apnsclient
 Version: 0.1.8
-Release: 2
+Release: 3
 Summary: Python client for Apple Push Notification service (APNs)
 Group: Development/Libraries
 License: ASL
 URL: https://bitbucket.org/sardarnl/apns-client
 Source0: https://pypi.python.org/packages/source/a/apns-client/apns-client-%{version}.tar.gz
 Patch0: content_available.patch
+Patch1: tls.patch
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
@@ -19,6 +20,7 @@ Python client for `Apple Push Notification service (APNs) .
 %prep
 %setup -q -n apns-client-%{version}
 %patch0 -p1
+%patch1 -p0
 
 %build
 %{__python} setup.py build
@@ -40,6 +42,9 @@ rm -rf %{buildroot}
 %{python_sitelib}/*.egg-info
 
 %changelog
+* Tue Nov  4 2014 Paul Egan <paulegan@mail.com> - 0.1.8-3
+- Included patch for TLS default
+
 * Fri Oct 11 2013 Paul Egan <paulegan@rockpack.com> - 0.1.8-1
 - Bumped to fix unicode payload size issue
 

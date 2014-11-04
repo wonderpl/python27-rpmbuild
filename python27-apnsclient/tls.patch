@@ -1,0 +1,22 @@
+From https://bitbucket.org/sardarnl/apns-client/pull-request/11/add-option-to-configure-certificate/diff
+
+--- apnsclient/apns.py	2014-11-04 10:01:23.884466568 +0000
++++ apnsclient/apns.py	2014-11-04 10:02:15.594133395 +0000
+@@ -38,7 +38,7 @@
+ class Certificate(object):
+     """ Certificate with private key. """
+ 
+-    def __init__(self, cert_string=None, cert_file=None, key_string=None, key_file=None, passphrase=None):
++    def __init__(self, cert_string=None, cert_file=None, key_string=None, key_file=None, passphrase=None, context_method=OpenSSL.SSL.TLSv1_METHOD):
+         """ Provider's certificate and private key.
+         
+             Your certificate will probably contain the private key. Open it
+@@ -63,7 +63,7 @@
+                 - `key_file` (str): private key in PEM format from file.
+                 - `passphrase` (str): passphrase for your private key.
+         """
+-        self._context = OpenSSL.SSL.Context(OpenSSL.SSL.SSLv3_METHOD)
++        self._context = OpenSSL.SSL.Context(context_method)
+         
+         if cert_file:
+             # we have to load certificate for equality check. there is no
